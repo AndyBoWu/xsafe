@@ -1,5 +1,5 @@
 /**
- * XSafe Content Script
+ * XSafe Content Script - Performance Optimized Version
  * Handles DOM scanning, content filtering, and element replacement
  */
 
@@ -9,22 +9,37 @@ class XSafeContentFilter {
     this.observer = null;
     this.mutationObserver = null;
     this.filteredElements = new Set();
-    this.performanceTracker = new PerformanceTracker();
+    this.isFiltering = false;
+    this.uiElementCache = new Map(); // Cache UI element detection results
+    this.maxFilteredElements = 200; // Prevent memory leaks
+    this.lastScanTime = 0;
+    this.scanCooldown = 2000; // Minimum 2 seconds between scans
 
     this.init();
   }
 
   async init() {
-    console.log('[XSafe] Content script initializing...');
+    console.log('[XSafe] Content script initializing on:', window.location.href);
 
     // Set up message listener for settings updates
     this.setupMessageListener();
 
-    // Request initial settings
+    // Request initial settings and start immediately if enabled
     await this.requestSettings();
 
+    // Start immediately if settings are available and enabled
+    this.startIfEnabled();
+
+    // Single delayed startup for dynamic content (reduced from multiple attempts)
+    setTimeout(() => {
+      this.startIfEnabled();
+    }, 2000);
+  }
+
+  startIfEnabled() {
     // Start content filtering if enabled
     if (this.settings && this.settings.enabled) {
+      console.log('[XSafe] Starting filtering...');
       this.startFiltering();
     }
   }
@@ -51,89 +66,173 @@ class XSafeContentFilter {
     switch (message.type) {
     case 'UPDATE_FILTERS':
       this.settings = message.settings;
+
       if (this.settings.enabled) {
         this.startFiltering();
       } else {
         this.stopFiltering();
       }
+
+      // Single immediate re-scan (removed timeout)
+      if (this.settings.enabled) {
+        this.scanExistingContent();
+      }
+
       sendResponse({ success: true });
       break;
     }
   }
 
   startFiltering() {
-    console.log('[XSafe] Starting content filtering...');
+    // Avoid duplicate setup
+    if (this.isFiltering) {
+      this.scanExistingContent();
+      return;
+    }
+
+    this.isFiltering = true;
 
     // Initial scan of existing content
     this.scanExistingContent();
 
-    // Set up observers for dynamic content
+    // Set up observers for dynamic content (only if not already set up)
     this.setupObservers();
 
     // Inject CSS for placeholders
     this.injectPlaceholderCSS();
+
+    // Set up much less frequent periodic scanning
+    this.setupPeriodicScanning();
+  }
+
+  setupPeriodicScanning() {
+    // Clear any existing interval to prevent memory leaks
+    if (this.periodicScanInterval) {
+      clearInterval(this.periodicScanInterval);
+      this.periodicScanInterval = null;
+    }
+
+    // Scan every 3 seconds for new content
+    this.periodicScanInterval = setInterval(() => {
+      if (this.settings && this.settings.enabled && this.canScan()) {
+        this.scanExistingContent();
+      }
+    }, 3000);
+  }
+
+  canScan() {
+    const now = Date.now();
+    if (now - this.lastScanTime < this.scanCooldown) {
+      return false; // Too soon since last scan
+    }
+    return true;
   }
 
   stopFiltering() {
     console.log('[XSafe] Stopping content filtering...');
 
+    this.isFiltering = false;
+
     // Disconnect observers
     if (this.observer) {
       this.observer.disconnect();
+      this.observer = null;
     }
     if (this.mutationObserver) {
       this.mutationObserver.disconnect();
+      this.mutationObserver = null;
     }
 
-    // Restore filtered elements
+    // Clear periodic scanning
+    if (this.periodicScanInterval) {
+      clearInterval(this.periodicScanInterval);
+      this.periodicScanInterval = null;
+    }
+
+    // Restore filtered elements and clear memory
     this.restoreAllElements();
+    this.cleanup();
+  }
+
+  cleanup() {
+    // Clear caches and sets to prevent memory leaks
+    this.filteredElements.clear();
+    this.uiElementCache.clear();
   }
 
   scanExistingContent() {
+    const now = Date.now();
+    if (now - this.lastScanTime < this.scanCooldown) {
+      return; // Skip if too soon
+    }
+
+    this.lastScanTime = now;
     const startTime = performance.now();
 
-    // Scan for videos
+    // Clean up old filtered elements if too many
+    this.limitFilteredElements();
+
+    // Scan for content using optimized selectors
     if (this.shouldFilterVideos()) {
       this.scanForVideos(document);
     }
 
-    // Scan for images
     if (this.shouldFilterImages()) {
       this.scanForImages(document);
     }
 
     const processingTime = performance.now() - startTime;
-    this.performanceTracker.record('scanTime', processingTime);
+    // Reduced logging - only log slow scans
+    if (processingTime > 100) {
+      console.log('[XSafe] Slow scan completed in', processingTime, 'ms');
+    }
+  }
+
+  limitFilteredElements() {
+    // Prevent memory leaks by limiting the number of filtered elements
+    if (this.filteredElements.size > this.maxFilteredElements) {
+      const elementsToRemove = this.filteredElements.size - this.maxFilteredElements;
+      const iterator = this.filteredElements.values();
+
+      for (let i = 0; i < elementsToRemove; i++) {
+        const element = iterator.next().value;
+        if (element && element._xsafePlaceholder) {
+          element._xsafePlaceholder.remove();
+        }
+        this.filteredElements.delete(element);
+      }
+    }
   }
 
   setupObservers() {
-    // Intersection Observer for performance-optimized scanning
-    this.observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          this.scanElement(entry.target);
-        }
-      });
-    }, { threshold: 0.1 });
+    // More efficient mutation observer - only watch main content area
+    const mainContentArea = document.querySelector('[data-testid="primaryColumn"]') || document.body;
 
-    // Mutation Observer for dynamic content
     this.mutationObserver = new MutationObserver(
       this.debounce(() => {
-        this.scanNewContent();
-      }, 100)
+        if (this.canScan()) {
+          this.scanNewContent();
+        }
+      }, 1000) // Increased debounce from 300ms to 1000ms
     );
 
-    this.mutationObserver.observe(document.body, {
+    this.mutationObserver.observe(mainContentArea, {
       childList: true,
       subtree: true
     });
   }
 
   scanNewContent() {
+    // Only scan new content that hasn't been scanned
     const addedNodes = document.querySelectorAll('*:not([data-xsafe-scanned])');
+    let scannedCount = 0;
+
     addedNodes.forEach(node => {
-      this.scanElement(node);
-      node.setAttribute('data-xsafe-scanned', 'true');
+      if (scannedCount < 50) { // Limit processing to prevent overload
+        this.scanElement(node);
+        node.setAttribute('data-xsafe-scanned', 'true');
+        scannedCount++;
+      }
     });
   }
 
@@ -147,70 +246,50 @@ class XSafeContentFilter {
   }
 
   scanForVideos(container = document) {
-    const videoSelectors = [
+    // Optimized video selectors - combined for efficiency
+    const videoSelector = [
       'video',
-      'iframe[src*="youtube"]',
-      'iframe[src*="youtu.be"]',
-      'iframe[src*="vimeo"]',
-      'iframe[src*="twitch"]',
-      'iframe[src*="tiktok"]',
-      '[data-video-id]',
-      '.video-player',
-      '[class*="video"]',
-      '[id*="video"]'
-    ];
+      '[data-testid="videoPlayer"]',
+      '[data-testid="videoComponent"]',
+      'iframe[src*="youtube"], iframe[src*="youtu.be"], iframe[src*="vimeo"]'
+    ].join(', ');
 
-    videoSelectors.forEach(selector => {
-      const elements = container.querySelectorAll(selector);
-      elements.forEach(element => this.filterVideo(element));
-    });
+    const elements = container.querySelectorAll(videoSelector);
+    elements.forEach(element => this.filterVideo(element));
   }
 
   scanForImages(container = document) {
-    const imageSelectors = [
-      'img',
-      'picture',
-      '[style*="background-image"]',
-      'svg image',
-      '[data-src]'
-    ];
+    // Optimized image selectors - combined for efficiency, excluding UI elements
+    const imageSelector = [
+      '[data-testid="tweetPhoto"] img',
+      '[data-testid="media"] img',
+      '[data-testid="card.layoutLarge.media"] img',
+      '[data-testid="card.layoutSmall.media"] img',
+      'article [data-testid="cellInnerDiv"] img[src*="pbs.twimg.com"]',
+      'article [data-testid="cellInnerDiv"] img[src*="ton.twimg.com"]',
+      'a[href*="/photo/"] img'
+    ].join(', ');
 
-    imageSelectors.forEach(selector => {
-      const elements = container.querySelectorAll(selector);
-      elements.forEach(element => this.filterImage(element));
+    const elements = container.querySelectorAll(imageSelector);
+    elements.forEach(element => {
+      if (!this.isUIElement(element)) {
+        this.filterImage(element);
+      }
     });
   }
 
   checkForVideo(element) {
     const videoTags = ['VIDEO', 'IFRAME'];
-    const videoClasses = ['video', 'player', 'embed'];
-    const videoAttributes = ['data-video-id', 'data-player'];
-
     if (videoTags.includes(element.tagName) ||
-        videoClasses.some(cls => element.className.toLowerCase().includes(cls)) ||
-        videoAttributes.some(attr => element.hasAttribute(attr)) ||
-        (element.tagName === 'IFRAME' && this.isVideoIframe(element))) {
+        element.querySelector('video, iframe[src*="youtube"], iframe[src*="vimeo"]')) {
       this.filterVideo(element);
     }
   }
 
   checkForImage(element) {
-    if (element.tagName === 'IMG' ||
-        element.tagName === 'PICTURE' ||
-        element.style.backgroundImage ||
-        element.hasAttribute('data-src')) {
+    if (element.tagName === 'IMG' && !this.isUIElement(element)) {
       this.filterImage(element);
     }
-  }
-
-  isVideoIframe(iframe) {
-    const src = iframe.src || iframe.getAttribute('data-src') || '';
-    const videoServices = [
-      'youtube.com', 'youtu.be', 'vimeo.com', 'twitch.tv',
-      'tiktok.com', 'dailymotion.com', 'streamable.com'
-    ];
-
-    return videoServices.some(service => src.includes(service));
   }
 
   filterVideo(element) {
@@ -220,7 +299,6 @@ class XSafeContentFilter {
 
     if (this.shouldFilter(element, 'video')) {
       this.replaceElement(element, 'video');
-      this.recordFiltering('video');
     }
   }
 
@@ -231,14 +309,12 @@ class XSafeContentFilter {
 
     if (this.shouldFilter(element, 'image')) {
       this.replaceElement(element, 'image');
-      this.recordFiltering('image');
     }
   }
 
   shouldFilter(element, type) {
     // Check intensity level
     if (this.settings.intensityLevel === 'permissive') {
-      // Only filter explicit content (would need more sophisticated detection)
       return false;
     }
 
@@ -247,7 +323,6 @@ class XSafeContentFilter {
       return true;
     }
 
-    // Default filtering based on mode
     return true;
   }
 
@@ -262,8 +337,6 @@ class XSafeContentFilter {
   }
 
   replaceElement(element, type) {
-    const startTime = performance.now();
-
     // Store original element data
     const originalData = {
       element: element,
@@ -289,9 +362,6 @@ class XSafeContentFilter {
     this.filteredElements.add(element);
     element._xsafeData = originalData;
     element._xsafePlaceholder = placeholder;
-
-    const processingTime = performance.now() - startTime;
-    this.performanceTracker.record('replaceTime', processingTime);
   }
 
   createPlaceholder(element, type) {
@@ -384,18 +454,6 @@ class XSafeContentFilter {
     return ['images', 'both'].includes(this.settings.filterMode);
   }
 
-  recordFiltering(type) {
-    chrome.runtime.sendMessage({
-      type: 'CONTENT_FILTERED',
-      data: {
-        type: type,
-        count: 1,
-        domain: window.location.hostname,
-        url: window.location.href
-      }
-    });
-  }
-
   injectPlaceholderCSS() {
     if (document.getElementById('xsafe-styles')) {return;}
 
@@ -436,65 +494,41 @@ class XSafeContentFilter {
       timeout = setTimeout(later, wait);
     };
   }
-}
 
-/**
- * Performance Tracker
- * Monitors and reports performance metrics
- */
-class PerformanceTracker {
-  constructor() {
-    this.metrics = {
-      scanTime: [],
-      filterTime: [],
-      replaceTime: [],
-      memoryUsage: []
-    };
+  isUIElement(element) {
+    // Use cache to avoid repeated expensive checks
+    const cacheKey = element.src || element.outerHTML.substring(0, 100);
+    if (this.uiElementCache.has(cacheKey)) {
+      return this.uiElementCache.get(cacheKey);
+    }
 
-    this.startMemoryMonitoring();
-  }
+    let isUI = false;
 
-  record(metric, value) {
-    if (this.metrics[metric]) {
-      this.metrics[metric].push(value);
+    // Quick checks for common UI elements
+    if (element.getAttribute('data-testid')?.includes('avatar') ||
+        element.getAttribute('alt')?.toLowerCase().includes('avatar') ||
+        element.getAttribute('alt')?.toLowerCase().includes('profile')) {
+      isUI = true;
+    }
 
-      // Keep only recent measurements
-      if (this.metrics[metric].length > 100) {
-        this.metrics[metric] = this.metrics[metric].slice(-50);
-      }
-
-      // Report to background script periodically
-      if (this.metrics[metric].length % 10 === 0) {
-        this.reportMetrics();
+    // Size-based check - very small images are likely UI
+    else {
+      const rect = element.getBoundingClientRect();
+      if (rect.width < 80 && rect.height < 80) {
+        isUI = true;
       }
     }
-  }
 
-  startMemoryMonitoring() {
-    setInterval(() => {
-      if (performance.memory) {
-        this.record('memoryUsage', performance.memory.usedJSHeapSize);
-      }
-    }, 5000);
-  }
+    // Cache the result
+    this.uiElementCache.set(cacheKey, isUI);
 
-  reportMetrics() {
-    const averages = {};
-    Object.keys(this.metrics).forEach(key => {
-      const values = this.metrics[key];
-      if (values.length > 0) {
-        averages[key] = values.reduce((a, b) => a + b, 0) / values.length;
-      }
-    });
+    // Limit cache size to prevent memory leaks
+    if (this.uiElementCache.size > 500) {
+      const firstKey = this.uiElementCache.keys().next().value;
+      this.uiElementCache.delete(firstKey);
+    }
 
-    chrome.runtime.sendMessage({
-      type: 'PERFORMANCE_DATA',
-      data: {
-        processingTime: averages.scanTime || 0,
-        loadImpact: averages.filterTime || 0,
-        memoryUsage: averages.memoryUsage || 0
-      }
-    });
+    return isUI;
   }
 }
 
