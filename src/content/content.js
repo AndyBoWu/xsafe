@@ -188,6 +188,13 @@ class XSafeContentFilter {
     // Clear caches and sets to prevent memory leaks
     this.filteredElements.clear();
     this.uiElementCache.clear();
+
+    // Clean up any remaining container markers
+    const markedElements = document.querySelectorAll('[data-xsafe-container-child], [data-xsafe-id]');
+    markedElements.forEach(element => {
+      element.removeAttribute('data-xsafe-container-child');
+      element.removeAttribute('data-xsafe-id');
+    });
   }
 
   scanExistingContent() {
@@ -289,42 +296,79 @@ class XSafeContentFilter {
   }
 
   scanForImages(container = document) {
-    // Comprehensive image selectors for Twitter's various image layouts
+    console.log('[XSafe] Starting image scan...');
+
+    // PHASE 1: Container-level filtering (prioritized)
+    // Filter entire content containers first to avoid partial filtering
+    this.scanForMediaContainers(container);
+
+    // PHASE 2: Individual image filtering (fallback)
+    // Only filter individual images that aren't part of already-filtered containers
+    this.scanForIndividualImages(container);
+  }
+
+  scanForMediaContainers(container = document) {
+    // Target entire media/card containers that should be filtered as complete units
+    const containerSelectors = [
+      // Entire media containers
+      '[data-testid="media"]',
+
+      // Card layouts (link previews, maps, interactive content)
+      '[data-testid="card.wrapper"]',
+      '[data-testid="card.layoutLarge.detail"]',
+      '[data-testid="card.layoutSmall.detail"]',
+
+      // Photo grid containers
+      '[data-testid="photoGrid"]',
+
+      // Media containers
+      '[data-testid="mediaContainer"]',
+      '[data-testid="photoViewer"]',
+      '[data-testid="imageContainer"]',
+
+      // Tweet photo containers
+      '[data-testid="tweetPhoto"]'
+    ];
+
+    containerSelectors.forEach(selector => {
+      try {
+        const containers = container.querySelectorAll(selector);
+        containers.forEach(containerElement => {
+          // Check if this container has image/visual content
+          const hasImages = containerElement.querySelector('img, [style*="background-image"]');
+          const hasVisualContent = hasImages ||
+            containerElement.style.backgroundImage ||
+            containerElement.querySelector('video, iframe');
+
+          if (hasVisualContent && !this.isUIElement(containerElement)) {
+            console.log('[XSafe] Filtering container:', selector, containerElement);
+            this.filterContainer(containerElement);
+          }
+        });
+      } catch (error) {
+        console.warn('[XSafe] Error with container selector:', selector, error);
+      }
+    });
+  }
+
+  scanForIndividualImages(container = document) {
+    // Only scan for individual images that aren't already part of filtered containers
     const imageSelectors = [
-      // Standard tweet photos
-      '[data-testid="tweetPhoto"] img',
-      '[data-testid="media"] img',
-
-      // Card layouts (link previews with images)
-      '[data-testid="card.layoutLarge.media"] img',
-      '[data-testid="card.layoutSmall.media"] img',
-
-      // Multi-image grid layouts
-      '[data-testid="media"] [data-testid="tweetPhoto"] img',
-      '[data-testid="media"] div[data-testid="photoGrid"] img',
-      '[data-testid="photoGrid"] img',
-
-      // Generic article images with Twitter domains
-      'article img[src*="pbs.twimg.com"]',
-      'article img[src*="ton.twimg.com"]',
-      'article img[src*="video.twimg.com"]',
+      // Standard individual images (outside of containers)
+      'article img[src*="pbs.twimg.com"]:not([data-xsafe-container-child])',
+      'article img[src*="ton.twimg.com"]:not([data-xsafe-container-child])',
+      'article img[src*="video.twimg.com"]:not([data-xsafe-container-child])',
 
       // Photo links
-      'a[href*="/photo/"] img',
-      'a[href*="/pic/"] img',
-
-      // Media containers and photo viewers
-      '[data-testid="mediaContainer"] img',
-      '[data-testid="photoViewer"] img',
-      '[data-testid="imageContainer"] img',
+      'a[href*="/photo/"] img:not([data-xsafe-container-child])',
+      'a[href*="/pic/"] img:not([data-xsafe-container-child])',
 
       // Less specific but important for catching edge cases
-      '[data-testid="cellInnerDiv"] img[src*="twimg.com"]',
-      'div[aria-label*="Image"] img',
+      '[data-testid="cellInnerDiv"] img[src*="twimg.com"]:not([data-xsafe-container-child])',
+      'div[aria-label*="Image"] img:not([data-xsafe-container-child])',
 
-      // Background images in divs (for CSS background-image)
-      '[data-testid="media"] div[style*="background-image"]',
-      '[data-testid="tweetPhoto"] div[style*="background-image"]'
+      // Background images in divs
+      'div[style*="background-image"]:not([data-xsafe-container-child])'
     ];
 
     // Process each selector
@@ -332,6 +376,11 @@ class XSafeContentFilter {
       try {
         const elements = container.querySelectorAll(selector);
         elements.forEach(element => {
+          // Skip if this element is inside an already filtered container
+          if (this.isInsideFilteredContainer(element)) {
+            return;
+          }
+
           // Handle background image divs differently
           if (element.tagName === 'DIV' && element.style.backgroundImage) {
             if (!this.isUIElement(element)) {
@@ -342,9 +391,42 @@ class XSafeContentFilter {
           }
         });
       } catch (error) {
-        console.warn('[XSafe] Error with selector:', selector, error);
+        console.warn('[XSafe] Error with individual image selector:', selector, error);
       }
     });
+  }
+
+  filterContainer(containerElement) {
+    if (this.isWhitelisted(containerElement) || this.filteredElements.has(containerElement)) {
+      return;
+    }
+
+    if (this.shouldFilter(containerElement, 'image')) {
+      // Mark all child elements so they won't be processed individually
+      const childElements = containerElement.querySelectorAll('img, div, video, iframe');
+      childElements.forEach(child => {
+        child.setAttribute('data-xsafe-container-child', 'true');
+      });
+
+      console.log('[XSafe] Filtering entire container with', childElements.length, 'child elements');
+      this.replaceElement(containerElement, 'image');
+    }
+  }
+
+  isInsideFilteredContainer(element) {
+    // Check if element is inside a container that we've already filtered
+    let parent = element.parentElement;
+    while (parent) {
+      if (this.filteredElements.has(parent)) {
+        return true;
+      }
+      // Also check for our container markers
+      if (parent.hasAttribute('data-xsafe-id')) {
+        return true;
+      }
+      parent = parent.parentElement;
+    }
+    return false;
   }
 
   checkForVideo(element) {
@@ -452,16 +534,29 @@ class XSafeContentFilter {
     const placeholder = document.createElement('div');
     placeholder.className = `xsafe-placeholder xsafe-${type}-placeholder`;
 
-    // Get element dimensions but cap them for better layout
+    // Get element dimensions but handle containers better
     const rect = element.getBoundingClientRect();
-    const originalWidth = rect.width || element.offsetWidth || 300;
-    const originalHeight = rect.height || element.offsetHeight || 200;
+    let originalWidth = rect.width || element.offsetWidth || 300;
+    let originalHeight = rect.height || element.offsetHeight || 200;
 
-    // Make placeholders more compact and Twitter-friendly
-    const maxWidth = Math.min(originalWidth, 400);
-    const maxHeight = Math.min(originalHeight, 150);
+    // For container elements, ensure minimum useful size
+    const isContainer = element.hasAttribute('data-testid') &&
+      (element.getAttribute('data-testid').includes('media') ||
+       element.getAttribute('data-testid').includes('card') ||
+       element.getAttribute('data-testid').includes('photo'));
+
+    if (isContainer) {
+      // Containers should maintain their full size for proper coverage
+      originalWidth = Math.max(originalWidth, 400);
+      originalHeight = Math.max(originalHeight, 200);
+      console.log('[XSafe] Creating placeholder for container:', originalWidth, 'x', originalHeight);
+    }
+
+    // Make placeholders Twitter-friendly but ensure adequate coverage
+    const maxWidth = Math.min(originalWidth, 600); // Increased max width for containers
+    const maxHeight = Math.min(originalHeight, 400); // Increased max height for containers
     const width = maxWidth;
-    const height = Math.max(maxHeight, 80); // Minimum height for usability
+    const height = Math.max(maxHeight, isContainer ? 120 : 80); // Taller minimum for containers
 
     placeholder.style.cssText = `
       width: ${width}px;
@@ -481,15 +576,17 @@ class XSafeContentFilter {
       box-sizing: border-box;
       margin: 4px 0;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      z-index: 1000;
     `;
 
     const icon = type === 'video' ? '🎬' : '🖼️';
     const typeText = type === 'video' ? 'Video' : 'Image';
+    const contentText = isContainer ? 'Media Content' : typeText;
 
     // Create reveal button with element ID for delegation
     placeholder.innerHTML = `
       <div style="margin-bottom: 4px; font-size: 18px; opacity: 0.7;">${icon}</div>
-      <div style="font-weight: 500; margin-bottom: 2px; font-size: 11px;">${typeText} Filtered</div>
+      <div style="font-weight: 500; margin-bottom: 2px; font-size: 11px;">${contentText} Filtered</div>
       <div style="font-size: 10px; opacity: 0.6; margin-bottom: 8px;">Content hidden by XSafe</div>
       <button class="xsafe-reveal-btn" data-element-id="${elementId}" style="
         background: #1d9bf0;
@@ -509,6 +606,15 @@ class XSafeContentFilter {
 
   revealElement(element) {
     console.log('[XSafe] Revealing element:', element);
+
+    // If this was a container, clean up child markers
+    const childElements = element.querySelectorAll('[data-xsafe-container-child]');
+    if (childElements.length > 0) {
+      console.log('[XSafe] Removing container child markers from', childElements.length, 'elements');
+      childElements.forEach(child => {
+        child.removeAttribute('data-xsafe-container-child');
+      });
+    }
 
     // Remove placeholder
     if (element._xsafePlaceholder) {
