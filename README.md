@@ -1,8 +1,8 @@
 # XSafe - Twitter/X Content Filter
 
-**Block NSFW content on Twitter/X • Zero data collection • Local processing only**
+**Block NSFW content on Twitter/X • Zero data collection • Local processing only • Free forever**
 
-XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos on Twitter/X timeline without collecting any personal data. All processing happens locally on your device with optimized performance.
+XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos on Twitter/X timeline without collecting any personal data. All processing happens locally on your device with optimized performance. **XSafe will always be completely free with no premium features or subscriptions.**
 
 ## 🚀 Features
 
@@ -15,6 +15,7 @@ XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos o
 - **🎨 Compact Placeholders**: Twitter-native styled placeholders that don't disrupt timeline flow
 - **🔧 Click to Reveal**: Option to reveal filtered content when needed
 - **🚫 Profile Picture Protection**: Smart filtering that excludes avatars and UI elements
+- **💰 Free Forever**: No premium features, no subscriptions, completely free to use
 
 ## 🎯 Perfect For
 
