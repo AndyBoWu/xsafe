@@ -16,6 +16,8 @@
     "test:integration": "playwright test",
     "test:all": "npm run test:unit && npm run test:integration",
     "icons": "node scripts/generate-icons.js",
+    "screenshots": "node scripts/capture-screenshots.js",
+    "store:prepare": "npm run build && npm run icons && npm run screenshots",
     "package": "npm run build && npm run icons && npm run zip",
     "zip": "cd dist && zip -r ../xsafe-extension.zip .",
     "analyze": "webpack-bundle-analyzer dist/stats.json",
