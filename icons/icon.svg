@@ -28,14 +28,14 @@
         stroke-width="1"
         opacity="0.3"/>
 
-  <!-- X Letter -->
+  <!-- Block X Letter with Sharp Edges -->
   <g transform="translate(64, 64)">
-    <!-- Left diagonal -->
-    <rect x="-18" y="-3" width="36" height="6" rx="3"
+    <!-- Left diagonal - sharp block style -->
+    <rect x="-20" y="-4" width="40" height="8"
           fill="url(#xGradient)"
           transform="rotate(45)" />
-    <!-- Right diagonal -->
-    <rect x="-18" y="-3" width="36" height="6" rx="3"
+    <!-- Right diagonal - sharp block style -->
+    <rect x="-20" y="-4" width="40" height="8"
           fill="url(#xGradient)"
           transform="rotate(-45)" />
   </g>
