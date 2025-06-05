@@ -534,29 +534,16 @@ class XSafeContentFilter {
     const placeholder = document.createElement('div');
     placeholder.className = `xsafe-placeholder xsafe-${type}-placeholder`;
 
-    // Get element dimensions but handle containers better
+    // Get exact element dimensions to maintain layout
     const rect = element.getBoundingClientRect();
-    let originalWidth = rect.width || element.offsetWidth || 300;
-    let originalHeight = rect.height || element.offsetHeight || 200;
+    const originalWidth = rect.width || element.offsetWidth || 300;
+    const originalHeight = rect.height || element.offsetHeight || 200;
 
-    // For container elements, ensure minimum useful size
-    const isContainer = element.hasAttribute('data-testid') &&
-      (element.getAttribute('data-testid').includes('media') ||
-       element.getAttribute('data-testid').includes('card') ||
-       element.getAttribute('data-testid').includes('photo'));
+    // Use identical dimensions to preserve layout - no caps or modifications
+    const width = originalWidth;
+    const height = originalHeight;
 
-    if (isContainer) {
-      // Containers should maintain their full size for proper coverage
-      originalWidth = Math.max(originalWidth, 400);
-      originalHeight = Math.max(originalHeight, 200);
-      console.log('[XSafe] Creating placeholder for container:', originalWidth, 'x', originalHeight);
-    }
-
-    // Make placeholders Twitter-friendly but ensure adequate coverage
-    const maxWidth = Math.min(originalWidth, 600); // Increased max width for containers
-    const maxHeight = Math.min(originalHeight, 400); // Increased max height for containers
-    const width = maxWidth;
-    const height = Math.max(maxHeight, isContainer ? 120 : 80); // Taller minimum for containers
+    console.log('[XSafe] Creating placeholder with exact dimensions:', width, 'x', height);
 
     placeholder.style.cssText = `
       width: ${width}px;
@@ -581,20 +568,34 @@ class XSafeContentFilter {
 
     const icon = type === 'video' ? '🎬' : '🖼️';
     const typeText = type === 'video' ? 'Video' : 'Image';
+
+    // Determine if this is a container element
+    const isContainer = element.hasAttribute('data-testid') &&
+      (element.getAttribute('data-testid').includes('media') ||
+       element.getAttribute('data-testid').includes('card') ||
+       element.getAttribute('data-testid').includes('photo'));
     const contentText = isContainer ? 'Media Content' : typeText;
+
+    // Adjust font sizes based on placeholder size for better readability
+    const isSmall = width < 150 || height < 100;
+    const iconSize = isSmall ? '14px' : '18px';
+    const titleSize = isSmall ? '9px' : '11px';
+    const subtitleSize = isSmall ? '8px' : '10px';
+    const buttonPadding = isSmall ? '2px 6px' : '4px 8px';
+    const buttonSize = isSmall ? '8px' : '10px';
 
     // Create reveal button with element ID for delegation
     placeholder.innerHTML = `
-      <div style="margin-bottom: 4px; font-size: 18px; opacity: 0.7;">${icon}</div>
-      <div style="font-weight: 500; margin-bottom: 2px; font-size: 11px;">${contentText} Filtered</div>
-      <div style="font-size: 10px; opacity: 0.6; margin-bottom: 8px;">Content hidden by XSafe</div>
+      <div style="margin-bottom: 4px; font-size: ${iconSize}; opacity: 0.7;">${icon}</div>
+      <div style="font-weight: 500; margin-bottom: 2px; font-size: ${titleSize};">${contentText} Filtered</div>
+      <div style="font-size: ${subtitleSize}; opacity: 0.6; margin-bottom: 8px;">Content hidden by XSafe</div>
       <button class="xsafe-reveal-btn" data-element-id="${elementId}" style="
         background: #1d9bf0;
         color: white;
         border: none;
-        padding: 4px 8px;
+        padding: ${buttonPadding};
         border-radius: 6px;
-        font-size: 10px;
+        font-size: ${buttonSize};
         cursor: pointer;
         transition: all 0.2s;
         font-weight: 500;
