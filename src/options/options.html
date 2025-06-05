@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XSafe Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="options-container">
+    <!-- Header -->
+    <header class="options-header">
+      <div class="header-content">
+        <div class="logo-section">
+          <span class="logo-icon">🛡️</span>
+          <div class="logo-text">
+            <h1>XSafe Settings</h1>
+            <p>Privacy-First Content Filter</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="resetBtn" class="btn btn-secondary">
+            <span class="btn-icon">🔄</span>
+            Reset to Defaults
+          </button>
+          <button id="saveBtn" class="btn btn-primary">
+            <span class="btn-icon">💾</span>
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="options-nav">
+      <div class="nav-container">
+        <button class="nav-item active" data-section="general">
+          <span class="nav-icon">⚙️</span>
+          General
+        </button>
+        <button class="nav-item" data-section="filtering">
+          <span class="nav-icon">🎯</span>
+          Content Filtering
+        </button>
+        <button class="nav-item" data-section="domains">
+          <span class="nav-icon">🌐</span>
+          Domain Management
+        </button>
+        <button class="nav-item" data-section="statistics">
+          <span class="nav-icon">📊</span>
+          Statistics
+        </button>
+        <button class="nav-item" data-section="privacy">
+          <span class="nav-icon">🔒</span>
+          Privacy & Security
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="options-main">
+      <!-- General Settings Section -->
+      <section id="general" class="options-section active">
+        <div class="section-header">
+          <h2>General Settings</h2>
+          <p>Basic configuration for XSafe content filtering</p>
+        </div>
+
+        <div class="settings-grid">
+          <!-- Enable/Disable -->
+          <div class="setting-card">
+            <div class="setting-header">
+              <h3>Content Filtering</h3>
+              <div class="toggle-switch">
+                <input type="checkbox" id="enableFiltering" class="toggle-input">
+                <span class="toggle-slider"></span>
+              </div>
+            </div>
+            <p class="setting-description">
+              Enable or disable content filtering across all websites. When disabled,
+              no content will be filtered.
+            </p>
+          </div>
+
+          <!-- Filter Mode -->
+          <div class="setting-card">
+            <div class="setting-header">
+              <h3>Filter Mode</h3>
+            </div>
+            <p class="setting-description">Choose what type of content to filter</p>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="filterMode" value="videos">
+                <span class="radio-custom"></span>
+                <span class="radio-content">
+                  <span class="radio-label">
+                    <span class="radio-icon">🎥</span>
+                    Videos Only
+                  </span>
+                  <span class="radio-desc">Filter video content including embedded players</span>
+                </span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="filterMode" value="images">
+                <span class="radio-custom"></span>
+                <span class="radio-content">
+                  <span class="radio-label">
+                    <span class="radio-icon">🖼️</span>
+                    Images Only
+                  </span>
+                  <span class="radio-desc">Filter images and background images</span>
+                </span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="filterMode" value="both">
+                <span class="radio-custom"></span>
+                <span class="radio-content">
+                  <span class="radio-label">
+                    <span class="radio-icon">🎭</span>
+                    Both Videos & Images
+                  </span>
+                  <span class="radio-desc">Filter all visual content</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Placeholder Settings -->
+          <div class="setting-card">
+            <div class="setting-header">
+              <h3>Placeholder Options</h3>
+            </div>
+            <div class="checkbox-group">
+              <label class="checkbox-option">
+                <input type="checkbox" id="showPlaceholders">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-content">
+                  <span class="checkbox-label">Show Placeholders</span>
+                  <span class="checkbox-desc">Display informative placeholders for filtered content</span>
+                </span>
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" id="showClickToReveal">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-content">
+                  <span class="checkbox-label">Click to Reveal</span>
+                  <span class="checkbox-desc">Allow users to reveal filtered content by clicking</span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Content Filtering Section -->
+      <section id="filtering" class="options-section">
+        <div class="section-header">
+          <h2>Content Filtering</h2>
+          <p>Advanced filtering configuration and intensity settings</p>
+        </div>
+
+        <div class="settings-grid">
+          <!-- Intensity Level -->
+          <div class="setting-card">
+            <div class="setting-header">
+              <h3>Filter Intensity</h3>
+            </div>
+            <p class="setting-description">
+              Control how aggressively content is filtered
+            </p>
+            <div class="intensity-container">
+              <input type="range" id="intensityRange" min="0" max="2" value="1" class="intensity-slider">
+              <div class="intensity-labels">
+                <div class="intensity-option" data-value="0">
+                  <span class="intensity-icon">😌</span>
+                  <span class="intensity-name">Permissive</span>
+                  <span class="intensity-desc">Light filtering, fewer false positives</span>
+                </div>
+                <div class="intensity-option active" data-value="1">
+                  <span class="intensity-icon">😐</span>
+                  <span class="intensity-name">Moderate</span>
+                  <span class="intensity-desc">Balanced filtering for most users</span>
+                </div>
+                <div class="intensity-option" data-value="2">
+                  <span class="intensity-icon">😤</span>
+                  <span class="intensity-name">Strict</span>
+                  <span class="intensity-desc">Aggressive filtering, may have false positives</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Custom Rules -->
+          <div class="setting-card full-width">
+            <div class="setting-header">
+              <h3>Custom Filter Rules</h3>
+              <button class="btn btn-small btn-secondary" id="addRuleBtn">
+                <span class="btn-icon">➕</span>
+                Add Rule
+              </button>
+            </div>
+            <p class="setting-description">
+              Create custom CSS selectors to filter specific elements
+            </p>
+            <div id="customRules" class="custom-rules-container">
+              <!-- Custom rules will be dynamically added here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Domain Management Section -->
+      <section id="domains" class="options-section">
+        <div class="section-header">
+          <h2>Domain Management</h2>
+          <p>Manage whitelisted and blacklisted domains</p>
+        </div>
+
+        <div class="settings-grid">
+          <!-- Whitelisted Domains -->
+          <div class="setting-card">
+            <div class="setting-header">
+              <h3>Whitelisted Domains</h3>
+              <button class="btn btn-small btn-secondary" id="addWhitelistBtn">
+                <span class="btn-icon">➕</span>
+                Add Domain
+              </button>
+            </div>
+            <p class="setting-description">
+              Domains where content filtering is disabled
+            </p>
+            <div class="domain-input-group">
+              <input type="text" id="whitelistInput" placeholder="example.com" class="domain-input">
+              <button class="btn btn-primary" id="addWhitelistDomainBtn">Add</button>
+            </div>
+            <div id="whitelistDomains" class="domain-list">
+              <!-- Whitelisted domains will be listed here -->
+            </div>
+          </div>
+
+          <!-- Blacklisted Domains -->
+          <div class="setting-card">
+            <div class="setting-header">
+              <h3>Blacklisted Domains</h3>
+              <button class="btn btn-small btn-secondary" id="addBlacklistBtn">
+                <span class="btn-icon">➕</span>
+                Add Domain
+              </button>
+            </div>
+            <p class="setting-description">
+              Domains where content filtering is always applied strictly
+            </p>
+            <div class="domain-input-group">
+              <input type="text" id="blacklistInput" placeholder="example.com" class="domain-input">
+              <button class="btn btn-primary" id="addBlacklistDomainBtn">Add</button>
+            </div>
+            <div id="blacklistDomains" class="domain-list">
+              <!-- Blacklisted domains will be listed here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Statistics Section -->
+      <section id="statistics" class="options-section">
+        <div class="section-header">
+          <h2>Statistics & Analytics</h2>
+          <p>View your filtering statistics and performance metrics</p>
+        </div>
+
+        <div class="stats-dashboard">
+          <!-- Overall Stats -->
+          <div class="stats-card">
+            <h3>Overall Statistics</h3>
+            <div class="stats-grid">
+              <div class="stat-item">
+                <span class="stat-number" id="totalFiltered">0</span>
+                <span class="stat-label">Total Filtered</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="videosFilteredStat">0</span>
+                <span class="stat-label">Videos Filtered</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-number" id="imagesFilteredStat">0</span>
+                <span class="stat-label">Images Filtered</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Performance Metrics -->
+          <div class="stats-card">
+            <h3>Performance Metrics</h3>
+            <div class="performance-metrics">
+              <div class="metric-item">
+                <span class="metric-label">Average Processing Time</span>
+                <span class="metric-value" id="avgProcessingTime">0ms</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Page Load Impact</span>
+                <span class="metric-value" id="pageLoadImpact">0ms</span>
+              </div>
+              <div class="metric-item">
+                <span class="metric-label">Memory Usage</span>
+                <span class="metric-value" id="memoryUsage">0MB</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top Domains -->
+          <div class="stats-card full-width">
+            <h3>Top Filtered Domains</h3>
+            <div id="topDomains" class="domain-stats">
+              <!-- Top domains will be listed here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Privacy & Security Section -->
+      <section id="privacy" class="options-section">
+        <div class="section-header">
+          <h2>Privacy & Security</h2>
+          <p>Information about XSafe's privacy practices</p>
+        </div>
+
+        <div class="privacy-cards">
+          <div class="privacy-card">
+            <div class="privacy-icon">🔒</div>
+            <h3>Zero Data Collection</h3>
+            <p>XSafe does not collect, store, or transmit any personal data. All processing happens locally on your device.</p>
+          </div>
+
+          <div class="privacy-card">
+            <div class="privacy-icon">💻</div>
+            <h3>Local Processing</h3>
+            <p>All content filtering is performed locally in your browser. No external servers are contacted.</p>
+          </div>
+
+          <div class="privacy-card">
+            <div class="privacy-icon">🔍</div>
+            <h3>Open Source</h3>
+            <p>XSafe is open source. You can review the code on GitHub to verify our privacy claims.</p>
+          </div>
+
+          <div class="privacy-card">
+            <div class="privacy-icon">⚡</div>
+            <h3>Minimal Permissions</h3>
+            <p>XSafe requests only the minimum permissions required for content filtering functionality.</p>
+          </div>
+        </div>
+
+        <div class="privacy-actions">
+          <button class="btn btn-secondary" id="clearStatsBtn">
+            <span class="btn-icon">🗑️</span>
+            Clear All Statistics
+          </button>
+          <a href="https://github.com/AndyBoWu/xsafe" target="_blank" class="btn btn-primary">
+            <span class="btn-icon">📂</span>
+            View Source Code
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="options-footer">
+      <div class="footer-content">
+        <p>&copy; 2024 XSafe - Privacy-First Content Filter</p>
+        <div class="footer-links">
+          <a href="https://github.com/AndyBoWu/xsafe" target="_blank">GitHub</a>
+          <span>•</span>
+          <a href="https://github.com/AndyBoWu/xsafe/issues" target="_blank">Report Issue</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Success Toast -->
+  <div id="successToast" class="toast toast-success">
+    <span class="toast-icon">✅</span>
+    <span class="toast-message">Settings saved successfully!</span>
+  </div>
+
+  <!-- Error Toast -->
+  <div id="errorToast" class="toast toast-error">
+    <span class="toast-icon">❌</span>
+    <span class="toast-message">Failed to save settings</span>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
