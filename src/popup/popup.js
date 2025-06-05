@@ -74,6 +74,12 @@ class XSafePopup {
   }
 
   setupEventListeners() {
+    // Safe Mode toggle
+    const safeModeToggle = document.getElementById('safeModeToggle');
+    if (safeModeToggle) {
+      safeModeToggle.addEventListener('change', this.handleSafeModeToggle.bind(this));
+    }
+
     // Main toggle
     const mainToggle = document.getElementById('mainToggle');
     if (mainToggle) {
@@ -115,6 +121,7 @@ class XSafePopup {
   updateUI() {
     this.updateStatus();
     this.updateMainToggle();
+    this.updateSafeModeToggle();
     this.updateFilterMode();
     this.updateIntensitySlider();
     this.updateStats();
@@ -146,6 +153,26 @@ class XSafePopup {
     const mainToggle = document.getElementById('mainToggle');
     if (mainToggle && this.settings) {
       mainToggle.checked = this.settings.enabled;
+    }
+  }
+
+  updateSafeModeToggle() {
+    const safeModeToggle = document.getElementById('safeModeToggle');
+    if (safeModeToggle && this.settings) {
+      const isEnabled = this.settings.enabled || false;
+      safeModeToggle.checked = isEnabled;
+
+      // Update background based on Safe Mode state
+      this.updateSafeModeBackground(isEnabled);
+    }
+  }
+
+  updateSafeModeBackground(isSafeMode) {
+    const body = document.body;
+    if (isSafeMode) {
+      body.classList.add('safe-mode');
+    } else {
+      body.classList.remove('safe-mode');
     }
   }
 
@@ -210,6 +237,13 @@ class XSafePopup {
       whitelistBtn.classList.remove('whitelisted');
       whitelistBtn.innerHTML = '<span class="btn-icon">✅</span>Whitelist Site';
     }
+  }
+
+  async handleSafeModeToggle(event) {
+    const enabled = event.target.checked;
+    await this.updateSetting('enabled', enabled);
+    this.updateSafeModeBackground(enabled);
+    this.updateStatus();
   }
 
   async handleMainToggle(event) {
