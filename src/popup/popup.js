@@ -49,27 +49,38 @@ class XSafePopup {
   async loadSettings() {
     try {
       const response = await chrome.runtime.sendMessage({ type: 'GET_SETTINGS' });
-      if (response.success) {
+      if (response && response.success) {
         this.settings = response.data;
       } else {
-        throw new Error(response.error);
+        throw new Error(response ? response.error : 'No response received');
       }
     } catch (error) {
       console.error('[XSafe Popup] Failed to load settings:', error);
-      this.showError('Failed to load settings');
+      this.showError('Failed to load settings. Please try refreshing the page.');
+
+      // Set default settings to prevent crashes
+      this.settings = {
+        enabled: false,
+        filterMode: 'both',
+        intensityLevel: 'moderate',
+        whitelistedDomains: [],
+        blacklistedDomains: []
+      };
     }
   }
 
   async loadStats() {
     try {
       const response = await chrome.runtime.sendMessage({ type: 'GET_STATS' });
-      if (response.success) {
+      if (response && response.success) {
         this.currentStats = response.data;
       } else {
-        throw new Error(response.error);
+        throw new Error(response ? response.error : 'No response received');
       }
     } catch (error) {
       console.error('[XSafe Popup] Failed to load stats:', error);
+      // Don't show error for stats, just fail silently
+      this.currentStats = null;
     }
   }
 

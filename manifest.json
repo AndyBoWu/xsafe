@@ -3,6 +3,8 @@
   "name": "XSafe - Twitter/X Content Filter",
   "version": "0.1.0",
   "description": "Block NSFW images and videos on Twitter/X timeline for safer browsing - zero data collection, local processing only.",
+  "author": "AndyBoWu",
+  "homepage_url": "https://github.com/AndyBoWu/xsafe",
 
   "permissions": [
     "storage",
@@ -50,5 +52,7 @@
   "web_accessible_resources": [{
     "resources": ["placeholder.css"],
     "matches": ["*://x.com/*", "*://twitter.com/*"]
-  }]
+  }],
+
+  "minimum_chrome_version": "88"
 }

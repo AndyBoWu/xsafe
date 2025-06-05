@@ -408,33 +408,43 @@ class XSafeContentFilter {
   }
 
   replaceElement(element, type) {
-    // Generate unique ID for this element for potential restoration
-    const elementId = `xsafe-${++this.elementCounter}`;
-    element.setAttribute('data-xsafe-id', elementId);
+    try {
+      // Validate element is still in DOM and has a parent
+      if (!element || !element.parentNode || !document.contains(element)) {
+        console.warn('[XSafe] Cannot replace element - not in DOM or no parent');
+        return;
+      }
 
-    // Store original element data for potential restoration
-    const originalData = {
-      element: element,
-      type: type,
-      originalDisplay: element.style.display,
-      originalVisibility: element.style.visibility,
-      originalParent: element.parentNode,
-      originalNextSibling: element.nextSibling,
-      elementId: elementId
-    };
+      // Generate unique ID for this element for potential restoration
+      const elementId = `xsafe-${++this.elementCounter}`;
+      element.setAttribute('data-xsafe-id', elementId);
 
-    console.log('[XSafe] Hiding', type, 'element completely:', elementId);
+      // Store original element data for potential restoration
+      const originalData = {
+        element: element,
+        type: type,
+        originalDisplay: element.style.display,
+        originalVisibility: element.style.visibility,
+        originalParent: element.parentNode,
+        originalNextSibling: element.nextSibling,
+        elementId: elementId
+      };
 
-    // Simply hide the element completely - no placeholder
-    element.style.display = 'none';
-    element.style.visibility = 'hidden';
+      console.log('[XSafe] Hiding', type, 'element completely:', elementId);
 
-    // Store for potential restoration
-    this.filteredElements.add(element);
-    element._xsafeData = originalData;
+      // Simply hide the element completely - no placeholder
+      element.style.display = 'none';
+      element.style.visibility = 'hidden';
 
-    // No placeholder needed - element is just hidden
-    element._xsafePlaceholder = null;
+      // Store for potential restoration
+      this.filteredElements.add(element);
+      element._xsafeData = originalData;
+
+      // No placeholder needed - element is just hidden
+      element._xsafePlaceholder = null;
+    } catch (error) {
+      console.error('[XSafe] Error in replaceElement:', error);
+    }
   }
 
   revealElement(element) {
@@ -511,31 +521,39 @@ class XSafeContentFilter {
 
     let isUI = false;
 
-    // Quick checks for common UI elements
-    if (element.getAttribute('data-testid')?.includes('avatar') ||
-        element.getAttribute('alt')?.toLowerCase().includes('avatar') ||
-        element.getAttribute('alt')?.toLowerCase().includes('profile')) {
-      isUI = true;
-    }
+    try {
+      // Quick checks for common UI elements with safe property access
+      const dataTestId = element.getAttribute('data-testid');
+      const altText = element.getAttribute('alt');
 
-    // Size-based check - very small images are likely UI
-    else {
-      const rect = element.getBoundingClientRect();
-      if (rect.width < 80 && rect.height < 80) {
+      if ((dataTestId && dataTestId.includes('avatar')) ||
+          (altText && typeof altText === 'string' && altText.toLowerCase().includes('avatar')) ||
+          (altText && typeof altText === 'string' && altText.toLowerCase().includes('profile'))) {
         isUI = true;
       }
+
+      // Size-based check - very small images are likely UI (with error handling)
+      else {
+        const rect = element.getBoundingClientRect();
+        if (rect && rect.width < 80 && rect.height < 80) {
+          isUI = true;
+        }
+      }
+
+      // Cache the result
+      this.uiElementCache.set(cacheKey, isUI);
+
+      // Limit cache size to prevent memory leaks
+      if (this.uiElementCache.size > 500) {
+        const firstKey = this.uiElementCache.keys().next().value;
+        this.uiElementCache.delete(firstKey);
+      }
+
+      return isUI;
+    } catch (error) {
+      console.warn('[XSafe] Error in isUIElement:', error);
+      return false; // Default to not UI element if error occurs
     }
-
-    // Cache the result
-    this.uiElementCache.set(cacheKey, isUI);
-
-    // Limit cache size to prevent memory leaks
-    if (this.uiElementCache.size > 500) {
-      const firstKey = this.uiElementCache.keys().next().value;
-      this.uiElementCache.delete(firstKey);
-    }
-
-    return isUI;
   }
 
   isInsideFilteredContainer(element) {

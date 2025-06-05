@@ -195,44 +195,30 @@ XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos o
 
 **🔒 Privacy Promise: If you find ANY external data transmission in XSafe, please [report it immediately](https://github.com/AndyBoWu/xsafe/issues). We're committed to absolute transparency.**
 
-## 🛠️ Installation
+## 🔗 Installation
 
-### From Source (Recommended for Privacy)
+### Chrome Web Store (Recommended)
 
-1. **Clone the repository**:
+📦 **Coming Soon**: XSafe will be available on the Chrome Web Store for easy one-click installation.
 
-   ```bash
-   git clone https://github.com/AndyBoWu/xsafe.git
-   cd xsafe
-   ```
+### Manual Installation (Developer Mode)
 
-2. **Install dependencies**:
+1. Download the latest release from [GitHub Releases](https://github.com/AndyBoWu/xsafe/releases)
+2. Extract the ZIP file
+3. Open Chrome and go to `chrome://extensions/`
+4. Enable "Developer mode" in the top right
+5. Click "Load unpacked" and select the extracted folder
+6. The extension will appear in your browser toolbar
 
-   ```bash
-   npm install
-   ```
+### Build from Source
 
-3. **Build the extension**:
-
-   ```bash
-   npm run build
-   ```
-
-4. **Load in Chrome**:
-
-   - Open `chrome://extensions/`
-   - Enable "Developer mode"
-   - Click "Load unpacked" and select the `dist/` folder
-
-5. **Verify Installation**:
-   - Visit Twitter/X
-   - Click the XSafe extension icon
-   - Toggle Safe Mode ON (green background)
-   - Images and videos should be filtered automatically
-
-### Chrome Web Store (Coming Soon)
-
-The extension will be available on the Chrome Web Store for easier installation.
+```bash
+git clone https://github.com/AndyBoWu/xsafe.git
+cd xsafe
+npm install
+npm run build
+# Load the 'dist' folder as an unpacked extension in Chrome
+```
 
 ## 🛠️ Development
 

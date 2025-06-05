@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: false
 ---
 # Coding workflow preferences
@@ -9,3 +9,6 @@ alwaysApply: false
 - Write thorough tests for all major functionality
 - Avoid making major changes to the patterns and architecture of how a feature works, after it has shown to work well, unless explicitly instructed
 - Always think about what other methods and areas of code might be affected by code changes
+- Always use chain of thought reasoning when tackling complex problems or ambiguous requests, breaking them down into logical steps before implementing (not needed for simple, straightforward commands)
+- Think through edge cases and implications before writing code, documenting your reasoning process
+- Explain your approach in comments or commit messages when the solution isn't immediately obvious

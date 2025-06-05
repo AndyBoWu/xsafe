@@ -48,6 +48,12 @@ class XSafeBackground {
 
   async handleMessage(message, sender, sendResponse) {
     try {
+      // Validate message structure
+      if (!message || !message.type) {
+        sendResponse({ success: false, error: 'Invalid message format' });
+        return;
+      }
+
       switch (message.type) {
       case 'GET_SETTINGS':
         const settings = await this.settings.getAll();
@@ -55,6 +61,10 @@ class XSafeBackground {
         break;
 
       case 'UPDATE_SETTING':
+        if (!message.key) {
+          sendResponse({ success: false, error: 'Missing setting key' });
+          return;
+        }
         await this.settings.set(message.key, message.value);
         await this.updateAllTabs();
         sendResponse({ success: true });
@@ -72,21 +82,25 @@ class XSafeBackground {
         break;
 
       case 'CONTENT_FILTERED':
-        await this.statsTracker.recordFiltering(message.data);
+        if (message.data) {
+          await this.statsTracker.recordFiltering(message.data);
+        }
         sendResponse({ success: true });
         break;
 
       case 'PERFORMANCE_DATA':
-        await this.statsTracker.recordPerformance(message.data);
+        if (message.data) {
+          await this.statsTracker.recordPerformance(message.data);
+        }
         sendResponse({ success: true });
         break;
 
       default:
-        sendResponse({ success: false, error: 'Unknown message type' });
+        sendResponse({ success: false, error: 'Unknown message type: ' + message.type });
       }
     } catch (error) {
       console.error('[XSafe] Error handling message:', error);
-      sendResponse({ success: false, error: error.message });
+      sendResponse({ success: false, error: error.message || 'Internal error' });
     }
   }
 
