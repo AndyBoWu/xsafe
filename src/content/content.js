@@ -368,63 +368,76 @@ class XSafeContentFilter {
     const placeholder = document.createElement('div');
     placeholder.className = `xsafe-placeholder xsafe-${type}-placeholder`;
 
-    // Get element dimensions
+    // Get element dimensions but cap them for better layout
     const rect = element.getBoundingClientRect();
-    const width = rect.width || element.offsetWidth || 300;
-    const height = rect.height || element.offsetHeight || 200;
+    const originalWidth = rect.width || element.offsetWidth || 300;
+    const originalHeight = rect.height || element.offsetHeight || 200;
+
+    // Make placeholders more compact and Twitter-friendly
+    const maxWidth = Math.min(originalWidth, 400);
+    const maxHeight = Math.min(originalHeight, 150);
+    const width = maxWidth;
+    const height = Math.max(maxHeight, 80); // Minimum height for usability
 
     placeholder.style.cssText = `
       width: ${width}px;
       height: ${height}px;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      border: 2px dashed #cbd5e0;
-      border-radius: 8px;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border: 1px solid #cbd5e0;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-direction: column;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 14px;
-      color: #4a5568;
+      font-size: 12px;
+      color: #64748b;
       text-align: center;
       position: relative;
       box-sizing: border-box;
+      margin: 4px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     `;
 
-    const icon = type === 'video' ? '🎥' : '🖼️';
+    const icon = type === 'video' ? '🎬' : '🖼️';
     const typeText = type === 'video' ? 'Video' : 'Image';
 
+    // Always show click to reveal button
     placeholder.innerHTML = `
-      <div style="margin-bottom: 8px; font-size: 24px;">${icon}</div>
-      <div style="font-weight: 500; margin-bottom: 4px;">${typeText} Filtered</div>
-      <div style="font-size: 12px; opacity: 0.7; margin-bottom: 12px;">Content hidden by XSafe</div>
-      ${this.settings.showClickToReveal ? `
-        <button class="xsafe-reveal-btn" style="
-          background: #4299e1;
-          color: white;
-          border: none;
-          padding: 6px 12px;
-          border-radius: 4px;
-          font-size: 12px;
-          cursor: pointer;
-          transition: background 0.2s;
-        ">Click to Reveal</button>
-      ` : ''}
+      <div style="margin-bottom: 4px; font-size: 18px; opacity: 0.7;">${icon}</div>
+      <div style="font-weight: 500; margin-bottom: 2px; font-size: 11px;">${typeText} Filtered</div>
+      <div style="font-size: 10px; opacity: 0.6; margin-bottom: 8px;">Content hidden by XSafe</div>
+      <button class="xsafe-reveal-btn" style="
+        background: #1d9bf0;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+      ">Click to Reveal</button>
     `;
 
     // Add click to reveal functionality
-    if (this.settings.showClickToReveal) {
-      const revealBtn = placeholder.querySelector('.xsafe-reveal-btn');
-      revealBtn.addEventListener('click', () => {
+    const revealBtn = placeholder.querySelector('.xsafe-reveal-btn');
+    if (revealBtn) {
+      revealBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[XSafe] Reveal button clicked, restoring element:', element);
         this.revealElement(element);
       });
 
       revealBtn.addEventListener('mouseenter', () => {
-        revealBtn.style.background = '#3182ce';
+        revealBtn.style.background = '#1a8cd8';
+        revealBtn.style.transform = 'translateY(-1px)';
       });
 
       revealBtn.addEventListener('mouseleave', () => {
-        revealBtn.style.background = '#4299e1';
+        revealBtn.style.background = '#1d9bf0';
+        revealBtn.style.transform = 'translateY(0)';
       });
     }
 
@@ -432,11 +445,28 @@ class XSafeContentFilter {
   }
 
   revealElement(element) {
+    console.log('[XSafe] Revealing element:', element);
+
+    // Remove placeholder
     if (element._xsafePlaceholder) {
       element._xsafePlaceholder.remove();
+      element._xsafePlaceholder = null;
     }
-    element.style.display = element._xsafeData.originalDisplay;
+
+    // Restore original element
+    if (element._xsafeData) {
+      element.style.display = element._xsafeData.originalDisplay || '';
+      element.style.visibility = element._xsafeData.originalVisibility || '';
+    } else {
+      // Fallback if data is missing
+      element.style.display = '';
+      element.style.visibility = '';
+    }
+
+    // Remove from filtered set
     this.filteredElements.delete(element);
+
+    console.log('[XSafe] Element revealed successfully');
   }
 
   restoreAllElements() {
