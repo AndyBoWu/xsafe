@@ -112,12 +112,12 @@ class XSafeContentFilter {
       this.periodicScanInterval = null;
     }
 
-    // Scan every 2 seconds for new content
+    // Scan every 1 second for new content
     this.periodicScanInterval = setInterval(() => {
       if (this.settings && this.settings.enabled && this.canScan()) {
         this.scanExistingContent();
       }
-    }, 2000);
+    }, 1000);
   }
 
   canScan() {
