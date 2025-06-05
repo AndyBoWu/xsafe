@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XSafe</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="logo">
+        <span class="logo-icon">🛡️</span>
+        <span class="logo-text">XSafe</span>
+      </div>
+      <div class="status-indicator" id="statusIndicator">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">Loading...</span>
+      </div>
+    </header>
+
+    <!-- Main Toggle -->
+    <section class="main-toggle">
+      <div class="toggle-group">
+        <label class="toggle-label" for="mainToggle">
+          <span>Content Filtering</span>
+          <div class="toggle-switch">
+            <input type="checkbox" id="mainToggle" class="toggle-input">
+            <span class="toggle-slider"></span>
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <!-- Quick Settings -->
+    <section class="quick-settings">
+      <h3 class="section-title">Filter Mode</h3>
+      <div class="filter-modes">
+        <label class="radio-option">
+          <input type="radio" name="filterMode" value="videos" id="filterVideos">
+          <span class="radio-custom"></span>
+          <span class="radio-label">
+            <span class="radio-icon">🎥</span>
+            Videos Only
+          </span>
+        </label>
+
+        <label class="radio-option">
+          <input type="radio" name="filterMode" value="images" id="filterImages">
+          <span class="radio-custom"></span>
+          <span class="radio-label">
+            <span class="radio-icon">🖼️</span>
+            Images Only
+          </span>
+        </label>
+
+        <label class="radio-option">
+          <input type="radio" name="filterMode" value="both" id="filterBoth">
+          <span class="radio-custom"></span>
+          <span class="radio-label">
+            <span class="radio-icon">🎭</span>
+            Both
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Current Page Stats -->
+    <section class="page-stats">
+      <h3 class="section-title">Current Page</h3>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-number" id="videosFiltered">0</span>
+          <span class="stat-label">Videos Filtered</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number" id="imagesFiltered">0</span>
+          <span class="stat-label">Images Filtered</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Intensity Level -->
+    <section class="intensity-section">
+      <h3 class="section-title">Filter Intensity</h3>
+      <div class="intensity-slider">
+        <input type="range" id="intensitySlider" min="0" max="2" value="1" class="slider">
+        <div class="intensity-labels">
+          <span class="intensity-label" data-value="0">Permissive</span>
+          <span class="intensity-label active" data-value="1">Moderate</span>
+          <span class="intensity-label" data-value="2">Strict</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+      <div class="action-buttons">
+        <button id="whitelistBtn" class="action-btn secondary">
+          <span class="btn-icon">✅</span>
+          Whitelist Site
+        </button>
+        <button id="optionsBtn" class="action-btn primary">
+          <span class="btn-icon">⚙️</span>
+          Settings
+        </button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="popup-footer">
+      <div class="privacy-note">
+        <span class="privacy-icon">🔒</span>
+        <span class="privacy-text">100% Private - No Data Collection</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
