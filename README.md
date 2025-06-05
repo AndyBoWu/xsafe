@@ -1,48 +1,25 @@
-# XSafe - Privacy-First Content Filter
+# XSafe - Twitter/X Content Filter
 
-**Zero data collection • Local processing only • Open source**
+**Block NSFW content on Twitter/X • Zero data collection • Local processing only**
 
-XSafe is a privacy-focused Chrome extension that filters visual content (images and videos) without collecting any personal data. All processing happens locally on your device.
+XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos on Twitter/X timeline without collecting any personal data. All processing happens locally on your device.
 
 ## 🚀 Features
 
-- **🛡️ Content Filtering**: Filter images, videos, or both based on your preferences
-- **📡 Bandwidth Savings**: Reduce internet data usage by 30-70% by filtering large media files
-- **🎯 Smart Detection**: Intelligent content analysis with adjustable sensitivity
-- **🌐 Domain Management**: Whitelist/blacklist specific websites
-- **📊 Privacy-First Analytics**: Track filtering stats without data collection
-- **⚙️ Customizable**: Multiple filter modes and intensity levels
-- **🔒 Zero Data Collection**: Everything processed locally
+- **🛡️ NSFW Protection**: Block inappropriate images and videos on Twitter/X timeline
+- **🎯 Timeline Focused**: Specifically designed for X.com main timeline content
+- **📊 Privacy-First**: No data collection, tracking, or external servers
+- **⚙️ Simple Controls**: Easy toggle switches for videos and images
+- **🔒 Local Processing**: Everything processed on your device only
+- **⚡ Lightweight**: Minimal impact on Twitter/X browsing performance
 
-## 📡 Bandwidth Savings
+## 🎯 Perfect For
 
-**XSafe can reduce your internet data usage by 30-70%** by filtering large media files before they fully download.
-
-### How It Works
-
-- **Prevents Downloads**: Images and videos are filtered before completing download
-- **Lightweight Placeholders**: Replaced with small text-based placeholders (~1-2KB each)
-- **Optional Loading**: Users can choose to reveal specific content if needed
-- **Smart Filtering**: Only blocks potentially problematic content, allows safe media
-
-### Real-World Impact
-
-| Content Type      | Typical Size | XSafe Placeholder | Savings |
-| ----------------- | ------------ | ----------------- | ------- |
-| High-res Images   | 200KB - 2MB  | 1-2KB             | 99%+    |
-| Videos/GIFs       | 1MB - 50MB+  | 1-2KB             | 99.9%+  |
-| Social Media Feed | 10-20MB      | 2-3MB             | 70-85%  |
-| News Articles     | 5-10MB       | 1-2MB             | 60-80%  |
-
-### Perfect For
-
-- **📱 Mobile Data Plans**: Save money on limited data plans
-- **🌐 Slow Connections**: Faster page loading on poor internet
-- **💼 Corporate Networks**: Reduce bandwidth usage in offices
-- **✈️ Travel**: Conserve data while roaming internationally
-- **🏠 Rural Areas**: Make the most of limited bandwidth
-
-_All filtering happens locally - your browsing data never leaves your device._
+- **👥 Professional Use**: Safe Twitter/X browsing in workplace environments
+- **👨‍👩‍👧‍👦 Family Safety**: Protect family members from NSFW content
+- **📚 Educational Settings**: Safe social media access in schools/libraries
+- **🏢 Corporate Networks**: Maintain professional browsing standards
+- **🔒 Privacy Conscious**: Users who want content filtering without data collection
 
 ## 🔒 Privacy Verification - Audit Our Claims
 
@@ -53,15 +30,15 @@ _All filtering happens locally - your browsing data never leaves your device._
 **Verify ZERO external requests:**
 
 1. **Install XSafe** (or use the development version)
-2. **Open any website** with images/videos
+2. **Open Twitter/X** in your browser
 3. **Press F12** (Developer Tools)
 4. **Click "Network" tab**
-5. **Browse for 5 minutes** with XSafe active
+5. **Browse Twitter/X for 5 minutes** with XSafe active
 6. **Look for XSafe requests** - you'll find **ZERO** external calls
 
 ```bash
 # What you'll see in Network tab:
-# ✅ Website requests (normal)
+# ✅ Twitter/X requests (normal)
 # ❌ NO requests from XSafe extension
 # ✅ All processing happens locally
 ```
@@ -110,6 +87,11 @@ _All filtering happens locally - your browsing data never leaves your device._
   "activeTab",   // ✅ Current tab only (not all tabs)
   "scripting"    // ✅ DOM manipulation only (no network access)
 ]
+
+"host_permissions": [
+  "*://x.com/*",      // ✅ Twitter/X only
+  "*://twitter.com/*" // ✅ Twitter redirect support
+]
 ```
 
 **Compare with other extensions** that often request:
@@ -118,6 +100,7 @@ _All filtering happens locally - your browsing data never leaves your device._
 - ❌ `history` (browsing history)
 - ❌ `cookies` (tracking data)
 - ❌ `identity` (personal information)
+- ❌ `http://*/*` (access to all websites)
 
 ### 🔐 Content Security Policy
 

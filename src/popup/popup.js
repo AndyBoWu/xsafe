@@ -3,6 +3,9 @@
  * Handles UI interactions and communication with background script
  */
 
+// Import CSS for webpack processing
+import './popup.css';
+
 class XSafePopup {
   constructor() {
     this.settings = null;
