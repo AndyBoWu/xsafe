@@ -25,9 +25,6 @@ class XSafeContentFilter {
     // Set up message listener for settings updates
     this.setupMessageListener();
 
-    // Set up global click delegation for reveal buttons
-    this.setupGlobalClickHandler();
-
     // Request initial settings and start immediately if enabled
     await this.requestSettings();
 
@@ -605,11 +602,11 @@ class XSafeContentFilter {
   }
 
   replaceElement(element, type) {
-    // Generate unique ID for this element
+    // Generate unique ID for this element for potential restoration
     const elementId = `xsafe-${++this.elementCounter}`;
     element.setAttribute('data-xsafe-id', elementId);
 
-    // Store original element data
+    // Store original element data for potential restoration
     const originalData = {
       element: element,
       type: type,
@@ -620,100 +617,22 @@ class XSafeContentFilter {
       elementId: elementId
     };
 
-    // Create placeholder
-    const placeholder = this.createPlaceholder(element, type, elementId);
+    console.log('[XSafe] Hiding', type, 'element completely:', elementId);
 
-    // Replace element
-    if (this.settings.showPlaceholders) {
-      element.parentNode.insertBefore(placeholder, element);
-      element.style.display = 'none';
-    } else {
-      element.style.display = 'none';
-    }
+    // Simply hide the element completely - no placeholder
+    element.style.display = 'none';
+    element.style.visibility = 'hidden';
 
     // Store for potential restoration
     this.filteredElements.add(element);
     element._xsafeData = originalData;
-    element._xsafePlaceholder = placeholder;
-  }
 
-  createPlaceholder(element, type, elementId) {
-    const placeholder = document.createElement('div');
-    placeholder.className = `xsafe-placeholder xsafe-${type}-placeholder`;
-
-    // Get exact element dimensions to maintain layout
-    const rect = element.getBoundingClientRect();
-    const originalWidth = rect.width || element.offsetWidth || 300;
-    const originalHeight = rect.height || element.offsetHeight || 200;
-
-    // Use identical dimensions to preserve layout - no caps or modifications
-    const width = originalWidth;
-    const height = originalHeight;
-
-    console.log('[XSafe] Creating placeholder with exact dimensions:', width, 'x', height);
-
-    placeholder.style.cssText = `
-      width: ${width}px;
-      height: ${height}px;
-      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-      border: 1px solid #cbd5e0;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 12px;
-      color: #64748b;
-      text-align: center;
-      position: relative;
-      box-sizing: border-box;
-      margin: 4px 0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      z-index: 1000;
-    `;
-
-    const icon = type === 'video' ? '🎬' : '🖼️';
-    const typeText = type === 'video' ? 'Video' : 'Image';
-
-    // Determine if this is a container element
-    const isContainer = element.hasAttribute('data-testid') &&
-      (element.getAttribute('data-testid').includes('media') ||
-       element.getAttribute('data-testid').includes('card') ||
-       element.getAttribute('data-testid').includes('photo'));
-    const contentText = isContainer ? 'Media Content' : typeText;
-
-    // Adjust font sizes based on placeholder size for better readability
-    const isSmall = width < 150 || height < 100;
-    const iconSize = isSmall ? '14px' : '18px';
-    const titleSize = isSmall ? '9px' : '11px';
-    const subtitleSize = isSmall ? '8px' : '10px';
-    const buttonPadding = isSmall ? '2px 6px' : '4px 8px';
-    const buttonSize = isSmall ? '8px' : '10px';
-
-    // Create reveal button with element ID for delegation
-    placeholder.innerHTML = `
-      <div style="margin-bottom: 4px; font-size: ${iconSize}; opacity: 0.7;">${icon}</div>
-      <div style="font-weight: 500; margin-bottom: 2px; font-size: ${titleSize};">${contentText} Filtered</div>
-      <div style="font-size: ${subtitleSize}; opacity: 0.6; margin-bottom: 8px;">Content hidden by XSafe</div>
-      <button class="xsafe-reveal-btn" data-element-id="${elementId}" style="
-        background: #1d9bf0;
-        color: white;
-        border: none;
-        padding: ${buttonPadding};
-        border-radius: 6px;
-        font-size: ${buttonSize};
-        cursor: pointer;
-        transition: all 0.2s;
-        font-weight: 500;
-      ">Click to Reveal</button>
-    `;
-
-    return placeholder;
+    // No placeholder needed - element is just hidden
+    element._xsafePlaceholder = null;
   }
 
   revealElement(element) {
-    console.log('[XSafe] Revealing element:', element);
+    console.log('[XSafe] Revealing hidden element:', element);
 
     // If this was a container, clean up child markers
     const childElements = element.querySelectorAll('[data-xsafe-container-child]');
@@ -724,14 +643,7 @@ class XSafeContentFilter {
       });
     }
 
-    // Remove placeholder
-    if (element._xsafePlaceholder) {
-      console.log('[XSafe] Removing placeholder');
-      element._xsafePlaceholder.remove();
-      element._xsafePlaceholder = null;
-    }
-
-    // Restore original element
+    // Restore original element visibility
     if (element._xsafeData) {
       console.log('[XSafe] Restoring original element properties');
       element.style.display = element._xsafeData.originalDisplay || '';
@@ -768,43 +680,8 @@ class XSafeContentFilter {
   }
 
   injectPlaceholderCSS() {
-    if (document.getElementById('xsafe-styles')) {return;}
-
-    const styles = document.createElement('style');
-    styles.id = 'xsafe-styles';
-    styles.textContent = `
-      .xsafe-placeholder {
-        user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-      }
-
-      .xsafe-reveal-btn {
-        transition: all 0.2s ease;
-      }
-
-      .xsafe-reveal-btn:hover {
-        background: #1a8cd8 !important;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-      }
-
-      .xsafe-reveal-btn:active {
-        transform: translateY(0);
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-      }
-
-      .xsafe-placeholder.xsafe-video-placeholder {
-        min-height: 200px;
-      }
-
-      .xsafe-placeholder.xsafe-image-placeholder {
-        min-height: 100px;
-      }
-    `;
-
-    document.head.appendChild(styles);
+    // No longer needed - we're not using placeholders
+    console.log('[XSafe] Placeholder CSS injection skipped - using direct hiding approach');
   }
 
   debounce(func, wait) {
