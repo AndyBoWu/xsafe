@@ -37,32 +37,6 @@ class XSafeContentFilter {
     }, 2000);
   }
 
-  setupGlobalClickHandler() {
-    // Use event delegation to handle all reveal button clicks
-    document.addEventListener('click', (e) => {
-      if (e.target && e.target.classList.contains('xsafe-reveal-btn')) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        console.log('[XSafe] Reveal button clicked via delegation');
-
-        // Get the element ID from the button
-        const elementId = e.target.getAttribute('data-element-id');
-        if (elementId) {
-          const element = document.querySelector(`[data-xsafe-id="${elementId}"]`);
-          if (element) {
-            console.log('[XSafe] Found element to reveal:', element);
-            this.revealElement(element);
-          } else {
-            console.error('[XSafe] Could not find element with ID:', elementId);
-          }
-        } else {
-          console.error('[XSafe] Reveal button missing element ID');
-        }
-      }
-    });
-  }
-
   startIfEnabled() {
     // Start content filtering if enabled
     if (this.settings && this.settings.enabled) {
@@ -125,8 +99,8 @@ class XSafeContentFilter {
     // Set up observers for dynamic content (only if not already set up)
     this.setupObservers();
 
-    // Inject CSS for placeholders
-    this.injectPlaceholderCSS();
+    // No more placeholder CSS injection needed
+    console.log('[XSafe] Using direct hiding approach - no placeholder setup needed');
 
     // Set up much less frequent periodic scanning
     this.setupPeriodicScanning();
@@ -230,9 +204,7 @@ class XSafeContentFilter {
 
       for (let i = 0; i < elementsToRemove; i++) {
         const element = iterator.next().value;
-        if (element && element._xsafePlaceholder) {
-          element._xsafePlaceholder.remove();
-        }
+        // No more placeholders to remove - elements are just hidden
         this.filteredElements.delete(element);
       }
     }
