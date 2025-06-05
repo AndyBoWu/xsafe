@@ -5,8 +5,9 @@
 ### 1.1 Architecture Principles
 
 - **Privacy-First**: All processing happens locally, zero external requests
-- **Performance-Optimized**: Lightweight with 2-second scanning and 93% query reduction
+- **Performance-Optimized**: Lightweight with 1-second scanning and granular media targeting
 - **Memory-Conscious**: Automatic cleanup with limits to prevent browser crashes
+- **Content-Preserving**: Granular filtering that hides media while preserving post structure
 - **Modular Design**: Clean separation of concerns
 - **Manifest V3 Compliant**: Latest Chrome extension standards
 - **Twitter/X Focused**: Specialized for X.com and Twitter.com content filtering
@@ -22,17 +23,17 @@
 │  ├── Filter Engine Controller                      │
 │  └── Message Router                                │
 ├─────────────────────────────────────────────────────┤
-│  Content Scripts (Performance Optimized)           │
-│  ├── Smart DOM Scanner (2s interval + cooldown)    │
-│  ├── Optimized Content Filter (2 combined queries) │
-│  ├── Element Replacer (Compact placeholders)       │
+│  Content Scripts (Granular Filtering)              │
+│  ├── Smart DOM Scanner (1s interval + cooldown)    │
+│  ├── Granular Media Filter (images/videos only)    │
+│  ├── Content Preservation Engine                   │
 │  ├── UI Element Detector (Cached)                  │
 │  └── Memory Manager (Cleanup + Limits)             │
 ├─────────────────────────────────────────────────────┤
 │  UI Components                                      │
 │  ├── Simplified Popup (Safe Mode Toggle)           │
 │  ├── Options Page                                  │
-│  └── Twitter-Native Placeholders                   │
+│  └── Direct Content Hiding (No Placeholders)       │
 ├─────────────────────────────────────────────────────┤
 │  Storage Layer                                      │
 │  ├── Local Storage (Settings)                      │
@@ -42,14 +43,14 @@
 
 ## 2. Performance Architecture
 
-### 2.1 Optimized Content Detection
+### 2.1 Granular Content Detection
 
 **Key Performance Improvements**:
 
-- **Combined Selectors**: Reduced from 27 individual queries to 2 combined queries (93% reduction)
-- **Smart Scanning**: 2-second periodic scanning with 2-second cooldown protection
+- **Granular Targeting**: Precise media element targeting while preserving post content
+- **Smart Scanning**: 1-second periodic scanning with 2-second cooldown protection
 - **Memory Limits**: Max 200 filtered elements, 500 cached UI detections
-- **Targeted Observers**: Mutation observer only watches Twitter content areas
+- **Content Preservation**: Only hides media elements, maintaining post readability
 - **Efficient Debouncing**: 1-second debounce on mutation detection
 
 ### 2.2 Memory Management
@@ -65,7 +66,7 @@ class XSafeContentFilter {
 
   limitFilteredElements() {
     if (this.filteredElements.size > this.maxFilteredElements) {
-      // Remove oldest elements
+      // Remove oldest elements - no placeholders to clean up
       const elementsToRemove =
         this.filteredElements.size - this.maxFilteredElements;
       // ... cleanup logic
@@ -74,40 +75,31 @@ class XSafeContentFilter {
 }
 ```
 
-### 2.3 Optimized Selectors
+### 2.3 Granular Media Selectors
 
-**Before (Memory Intensive)**:
-
-```javascript
-// 27 individual DOM queries
-const selectors = [
-  "img",
-  "picture",
-  '[style*="background-image"]',
-  '[data-testid="tweetPhoto"] img',
-  '[data-testid="Tweet-User-Avatar"] img',
-  // ... 22 more individual selectors
-];
-```
-
-**After (Performance Optimized)**:
+**Granular Media Targeting (Preserves Post Content)**:
 
 ```javascript
-// 2 combined queries
-const imageSelector = [
+// Targets only media elements, not containers
+const mediaSelectors = [
+  // Individual images in tweets
   '[data-testid="tweetPhoto"] img',
-  '[data-testid="media"] img',
-  '[data-testid="card.layoutLarge.media"] img',
-  'article [data-testid="cellInnerDiv"] img[src*="pbs.twimg.com"]',
-  'a[href*="/photo/"] img',
-].join(", ");
+  '[data-testid="media"] img:not([alt*="avatar"]):not([alt*="profile"])',
 
-const videoSelector = [
+  // Video elements
+  '[data-testid="videoPlayer"] video',
   "video",
-  '[data-testid="videoPlayer"]',
-  '[data-testid="videoComponent"]',
-  'iframe[src*="youtube"], iframe[src*="vimeo"]',
-].join(", ");
+
+  // Card media (but not entire cards)
+  '[data-testid="card.layoutLarge.media"] img',
+
+  // Background image divs within media contexts
+  '[data-testid="media"] div[style*="background-image"]',
+
+  // iframe embeds
+  'iframe[src*="youtube"]',
+  'iframe[src*="vimeo"]',
+];
 ```
 
 ## 3. Component Architecture
@@ -137,26 +129,27 @@ settingsManager.handleMessage(message, sender, sendResponse);
 
 #### 3.2.1 Smart DOM Scanner
 
-- **Optimized Frequency**: 2-second scanning with cooldown protection
-- **Targeted Detection**: Combined selectors for efficient querying
+- **Optimized Frequency**: 1-second scanning with cooldown protection
+- **Granular Detection**: Targets only media elements, preserving post content
 - **Memory Conscious**: Limited processing (max 50 elements per scan)
 - **Cache Utilization**: UI element detection caching
 
-#### 3.2.2 Content Filter
+#### 3.2.2 Granular Content Filter
 
 - **Safe Mode Toggle**: Single toggle for complete protection
+- **Media-Only Filtering**: Hides images/videos while preserving post text and structure
 - **Profile Protection**: Smart filtering that excludes avatars and UI elements
-- **Performance Monitoring**: Only logs slow scans (>100ms)
+- **Content Preservation**: Maintains post readability and engagement functionality
 
-#### 3.2.3 Element Replacer
+#### 3.2.3 Direct Content Hiding
 
-- **Compact Placeholders**: Twitter-native styled, maximum 150px height
-- **Click to Reveal**: Optional content revelation
-- **Responsive Design**: Mobile-friendly sizing
+- **No Placeholders**: Filtered content disappears completely for cleaner experience
+- **Layout Preservation**: Post structure remains intact
+- **Performance Optimized**: No DOM manipulation for placeholder creation
 
 #### 3.2.4 Memory Manager
 
-- **Automatic Cleanup**: Regular cleanup of old filtered elements
+- **Automatic Cleanup**: Regular cleanup of filtered elements
 - **Cache Limits**: UI detection cache capped at 500 entries
 - **Proper Disposal**: All intervals and observers properly cleaned up
 
@@ -185,22 +178,20 @@ settingsManager.handleMessage(message, sender, sendResponse);
 
 ## 4. Data Flow Architecture
 
-### 4.1 Optimized Content Detection Flow
+### 4.1 Granular Content Detection Flow
 
 ```
-Page Load → Smart Scanner → Combined Queries → Filter Engine → Compact Placeholders
-    ↓           ↓              ↓                ↓               ↓
-Cooldown    Cache Check    Efficient DOM     Processing      Visual Integration
-Protection  (UI Elements)  Access (2 queries) Decision       (Twitter-styled)
+Page Load → Smart Scanner → Granular Selectors → Filter Engine → Direct Hiding
+    ↓           ↓              ↓                   ↓               ↓
+Cooldown    Cache Check    Media-Only DOM        Processing      Content Removal
+Protection  (UI Elements)  Access (preserve      Decision        (Hide elements)
+                          post structure)
 ```
 
 ### 4.2 Settings Management Flow
 
 ```
 Safe Mode Toggle → Validation → Background Worker → Storage → Immediate Content Update
-    ↓                ↓             ↓                 ↓           ↓
-User Toggles      Simple Check   Settings Sync    Persistence  Live Filter Update
-(Normal/Safe)     (enabled/mode) Coordination     (Local)      (Current Tab)
 ```
 
 ### 4.3 Communication Architecture

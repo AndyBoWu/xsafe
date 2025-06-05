@@ -7,14 +7,14 @@ XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos o
 ## 🚀 Features
 
 - **🛡️ NSFW Protection**: Block inappropriate images and videos on Twitter/X timeline
-- **🎯 Twitter/X Focused**: Specifically designed for X.com and Twitter.com content
+- **🎯 Granular Filtering**: Hide only media content while preserving post text, usernames, and engagement buttons
 - **📊 Privacy-First**: No data collection, tracking, or external servers
 - **⚙️ Simple Toggle**: Easy Safe Mode switch - one toggle for complete protection
 - **🔒 Local Processing**: Everything processed on your device only
-- **⚡ Optimized Performance**: Lightweight with 2-second scanning for fast content detection
-- **🎨 Compact Placeholders**: Twitter-native styled placeholders that don't disrupt timeline flow
-- **🔧 Click to Reveal**: Option to reveal filtered content when needed
+- **⚡ Optimized Performance**: Lightweight with 1-second scanning for fast content detection
+- **🎨 Smart Content Preservation**: Post structure remains intact while filtering visual content
 - **🚫 Profile Picture Protection**: Smart filtering that excludes avatars and UI elements
+- **🔧 Automatic Content Hiding**: Filtered images and videos disappear completely for cleaner browsing
 - **💰 Free Forever**: No premium features, no subscriptions, completely free to use
 
 ## 🎯 Perfect For
@@ -30,20 +30,22 @@ XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos o
 **Simple Safe Mode Toggle:**
 
 - **Normal Mode**: Content displays normally
-- **Safe Mode**: Automatically filters images and videos with compact placeholders
+- **Safe Mode**: Automatically hides images and videos while preserving post text and structure
 - **Visual Feedback**: Green background when Safe Mode is active
+- **Content Preservation**: Posts remain readable with usernames, text, and engagement buttons visible
 - **GitHub Link**: Direct access to source code for transparency
 
 ## ⚡ Performance Optimizations
 
 **Recent performance improvements eliminate browser crashes:**
 
-- **🔄 Smart Scanning**: 2-second periodic scanning with cooldown protection
-- **🎯 Optimized Selectors**: 93% reduction in DOM queries (from 27 to 2 combined selectors)
+- **🛡 Smart Scanning**: 1-second periodic scanning with cooldown protection for responsive filtering
+- **🎯 Granular Media Targeting**: Precise targeting of images/videos while preserving post content
 - **🧹 Memory Management**: Automatic cleanup with limits (max 200 filtered elements)
 - **📱 Efficient Observers**: Targeted mutation detection with 1-second debouncing
 - **💾 Caching**: UI element detection caching to prevent repeated expensive checks
 - **🔧 Proper Cleanup**: All intervals, observers, and caches are properly managed
+- **🎨 Content Preservation**: Only hides media elements, maintaining post readability and functionality
 
 ## 🔒 Privacy Verification - Audit Our Claims
 
