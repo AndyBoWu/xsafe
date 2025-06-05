@@ -14,6 +14,7 @@ class XSafeContentFilter {
     this.maxFilteredElements = 200; // Prevent memory leaks
     this.lastScanTime = 0;
     this.scanCooldown = 2000; // Minimum 2 seconds between scans
+    this.elementCounter = 0; // For unique IDs
 
     this.init();
   }
@@ -23,6 +24,9 @@ class XSafeContentFilter {
 
     // Set up message listener for settings updates
     this.setupMessageListener();
+
+    // Set up global click delegation for reveal buttons
+    this.setupGlobalClickHandler();
 
     // Request initial settings and start immediately if enabled
     await this.requestSettings();
@@ -34,6 +38,32 @@ class XSafeContentFilter {
     setTimeout(() => {
       this.startIfEnabled();
     }, 2000);
+  }
+
+  setupGlobalClickHandler() {
+    // Use event delegation to handle all reveal button clicks
+    document.addEventListener('click', (e) => {
+      if (e.target && e.target.classList.contains('xsafe-reveal-btn')) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        console.log('[XSafe] Reveal button clicked via delegation');
+
+        // Get the element ID from the button
+        const elementId = e.target.getAttribute('data-element-id');
+        if (elementId) {
+          const element = document.querySelector(`[data-xsafe-id="${elementId}"]`);
+          if (element) {
+            console.log('[XSafe] Found element to reveal:', element);
+            this.revealElement(element);
+          } else {
+            console.error('[XSafe] Could not find element with ID:', elementId);
+          }
+        } else {
+          console.error('[XSafe] Reveal button missing element ID');
+        }
+      }
+    });
   }
 
   startIfEnabled() {
@@ -259,21 +289,60 @@ class XSafeContentFilter {
   }
 
   scanForImages(container = document) {
-    // Optimized image selectors - combined for efficiency, excluding UI elements
-    const imageSelector = [
+    // Comprehensive image selectors for Twitter's various image layouts
+    const imageSelectors = [
+      // Standard tweet photos
       '[data-testid="tweetPhoto"] img',
       '[data-testid="media"] img',
+
+      // Card layouts (link previews with images)
       '[data-testid="card.layoutLarge.media"] img',
       '[data-testid="card.layoutSmall.media"] img',
-      'article [data-testid="cellInnerDiv"] img[src*="pbs.twimg.com"]',
-      'article [data-testid="cellInnerDiv"] img[src*="ton.twimg.com"]',
-      'a[href*="/photo/"] img'
-    ].join(', ');
 
-    const elements = container.querySelectorAll(imageSelector);
-    elements.forEach(element => {
-      if (!this.isUIElement(element)) {
-        this.filterImage(element);
+      // Multi-image grid layouts
+      '[data-testid="media"] [data-testid="tweetPhoto"] img',
+      '[data-testid="media"] div[data-testid="photoGrid"] img',
+      '[data-testid="photoGrid"] img',
+
+      // Generic article images with Twitter domains
+      'article img[src*="pbs.twimg.com"]',
+      'article img[src*="ton.twimg.com"]',
+      'article img[src*="video.twimg.com"]',
+
+      // Photo links
+      'a[href*="/photo/"] img',
+      'a[href*="/pic/"] img',
+
+      // Media containers and photo viewers
+      '[data-testid="mediaContainer"] img',
+      '[data-testid="photoViewer"] img',
+      '[data-testid="imageContainer"] img',
+
+      // Less specific but important for catching edge cases
+      '[data-testid="cellInnerDiv"] img[src*="twimg.com"]',
+      'div[aria-label*="Image"] img',
+
+      // Background images in divs (for CSS background-image)
+      '[data-testid="media"] div[style*="background-image"]',
+      '[data-testid="tweetPhoto"] div[style*="background-image"]'
+    ];
+
+    // Process each selector
+    imageSelectors.forEach(selector => {
+      try {
+        const elements = container.querySelectorAll(selector);
+        elements.forEach(element => {
+          // Handle background image divs differently
+          if (element.tagName === 'DIV' && element.style.backgroundImage) {
+            if (!this.isUIElement(element)) {
+              this.filterBackgroundImage(element);
+            }
+          } else if (element.tagName === 'IMG' && !this.isUIElement(element)) {
+            this.filterImage(element);
+          }
+        });
+      } catch (error) {
+        console.warn('[XSafe] Error with selector:', selector, error);
       }
     });
   }
@@ -312,6 +381,16 @@ class XSafeContentFilter {
     }
   }
 
+  filterBackgroundImage(element) {
+    if (this.isWhitelisted(element) || this.filteredElements.has(element)) {
+      return;
+    }
+
+    if (this.shouldFilter(element, 'image')) {
+      this.replaceElement(element, 'image');
+    }
+  }
+
   shouldFilter(element, type) {
     // Check intensity level
     if (this.settings.intensityLevel === 'permissive') {
@@ -337,6 +416,10 @@ class XSafeContentFilter {
   }
 
   replaceElement(element, type) {
+    // Generate unique ID for this element
+    const elementId = `xsafe-${++this.elementCounter}`;
+    element.setAttribute('data-xsafe-id', elementId);
+
     // Store original element data
     const originalData = {
       element: element,
@@ -344,11 +427,12 @@ class XSafeContentFilter {
       originalDisplay: element.style.display,
       originalVisibility: element.style.visibility,
       originalParent: element.parentNode,
-      originalNextSibling: element.nextSibling
+      originalNextSibling: element.nextSibling,
+      elementId: elementId
     };
 
     // Create placeholder
-    const placeholder = this.createPlaceholder(element, type);
+    const placeholder = this.createPlaceholder(element, type, elementId);
 
     // Replace element
     if (this.settings.showPlaceholders) {
@@ -364,7 +448,7 @@ class XSafeContentFilter {
     element._xsafePlaceholder = placeholder;
   }
 
-  createPlaceholder(element, type) {
+  createPlaceholder(element, type, elementId) {
     const placeholder = document.createElement('div');
     placeholder.className = `xsafe-placeholder xsafe-${type}-placeholder`;
 
@@ -402,12 +486,12 @@ class XSafeContentFilter {
     const icon = type === 'video' ? '🎬' : '🖼️';
     const typeText = type === 'video' ? 'Video' : 'Image';
 
-    // Always show click to reveal button
+    // Create reveal button with element ID for delegation
     placeholder.innerHTML = `
       <div style="margin-bottom: 4px; font-size: 18px; opacity: 0.7;">${icon}</div>
       <div style="font-weight: 500; margin-bottom: 2px; font-size: 11px;">${typeText} Filtered</div>
       <div style="font-size: 10px; opacity: 0.6; margin-bottom: 8px;">Content hidden by XSafe</div>
-      <button class="xsafe-reveal-btn" style="
+      <button class="xsafe-reveal-btn" data-element-id="${elementId}" style="
         background: #1d9bf0;
         color: white;
         border: none;
@@ -420,27 +504,6 @@ class XSafeContentFilter {
       ">Click to Reveal</button>
     `;
 
-    // Add click to reveal functionality
-    const revealBtn = placeholder.querySelector('.xsafe-reveal-btn');
-    if (revealBtn) {
-      revealBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('[XSafe] Reveal button clicked, restoring element:', element);
-        this.revealElement(element);
-      });
-
-      revealBtn.addEventListener('mouseenter', () => {
-        revealBtn.style.background = '#1a8cd8';
-        revealBtn.style.transform = 'translateY(-1px)';
-      });
-
-      revealBtn.addEventListener('mouseleave', () => {
-        revealBtn.style.background = '#1d9bf0';
-        revealBtn.style.transform = 'translateY(0)';
-      });
-    }
-
     return placeholder;
   }
 
@@ -449,19 +512,25 @@ class XSafeContentFilter {
 
     // Remove placeholder
     if (element._xsafePlaceholder) {
+      console.log('[XSafe] Removing placeholder');
       element._xsafePlaceholder.remove();
       element._xsafePlaceholder = null;
     }
 
     // Restore original element
     if (element._xsafeData) {
+      console.log('[XSafe] Restoring original element properties');
       element.style.display = element._xsafeData.originalDisplay || '';
       element.style.visibility = element._xsafeData.originalVisibility || '';
     } else {
       // Fallback if data is missing
+      console.log('[XSafe] Using fallback restoration (no saved data)');
       element.style.display = '';
       element.style.visibility = '';
     }
+
+    // Clean up element attributes
+    element.removeAttribute('data-xsafe-id');
 
     // Remove from filtered set
     this.filteredElements.delete(element);
@@ -497,8 +566,19 @@ class XSafeContentFilter {
         -ms-user-select: none;
       }
 
+      .xsafe-reveal-btn {
+        transition: all 0.2s ease;
+      }
+
       .xsafe-reveal-btn:hover {
+        background: #1a8cd8 !important;
         transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      }
+
+      .xsafe-reveal-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
       }
 
       .xsafe-placeholder.xsafe-video-placeholder {
