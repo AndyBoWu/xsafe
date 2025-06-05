@@ -265,191 +265,76 @@ class XSafeContentFilter {
   }
 
   scanForImages(container = document) {
-    console.log('[XSafe] Starting comprehensive image scan...');
+    console.log('[XSafe] Starting granular image scan - targeting only media, preserving post content...');
 
-    // PHASE 1: Container-level filtering (prioritized)
-    // Filter entire content containers first to avoid partial filtering
-    this.scanForMediaContainers(container);
-
-    // PHASE 2: Individual image filtering (fallback)
-    // Only filter individual images that aren't part of already-filtered containers
-    this.scanForIndividualImages(container);
+    // Focus on individual media elements, not entire containers
+    // This preserves post text while hiding only images/videos
+    this.scanForIndividualMedia(container);
 
     console.log('[XSafe] Scan complete. Filtered elements:', this.filteredElements.size);
   }
 
-  scanForMediaContainers(container = document) {
-    // Target entire media/card containers that should be filtered as complete units
-    const containerSelectors = [
-      // Entire card containers (highest priority)
-      '[data-testid="card.wrapper"]',
-      '[data-testid="card.layoutLarge.detail"]',
-      '[data-testid="card.layoutSmall.detail"]',
+  scanForIndividualMedia(container = document) {
+    // Target specific media elements only, not their containers
+    const mediaSelectors = [
+      // Individual images in tweets - be very specific
+      '[data-testid="tweetPhoto"] img',
+      '[data-testid="media"] img:not([alt*="avatar"]):not([alt*="profile"])',
 
-      // Large card containers
-      '[data-testid="card.layoutLarge"]',
-      '[data-testid="card.layoutSmall"]',
+      // Video elements
+      '[data-testid="videoPlayer"] video',
+      '[data-testid="videoComponent"] video',
+      'video',
 
-      // Link preview cards
-      '[data-testid="card"]',
+      // Card media images (but not the entire card)
+      '[data-testid="card.layoutLarge.media"] img',
+      '[data-testid="card.layoutSmall.media"] img',
 
-      // Media containers
-      '[data-testid="media"]',
-      '[data-testid="mediaContainer"]',
+      // Photo grid images specifically
+      '[data-testid="photoGrid"] img',
 
-      // Photo and image containers
-      '[data-testid="photoGrid"]',
-      '[data-testid="photoViewer"]',
-      '[data-testid="imageContainer"]',
-      '[data-testid="tweetPhoto"]',
+      // Media container images (but not the container itself)
+      '[data-testid="mediaContainer"] img',
+      '[data-testid="photoViewer"] img',
 
-      // Generic card and media wrappers
-      'div[class*="card"]',
-      'div[class*="media"]',
+      // Tweet images with Twitter domains
+      'article img[src*="pbs.twimg.com"]:not([alt*="avatar"]):not([alt*="profile"])',
+      'article img[src*="ton.twimg.com"]:not([alt*="avatar"]):not([alt*="profile"])',
+      'article img[src*="video.twimg.com"]',
 
-      // External link previews and embeds
-      'div[data-testid*="card"]',
-      'div[aria-label*="Link"]',
+      // Background image divs within media contexts
+      '[data-testid="media"] div[style*="background-image"]',
+      '[data-testid="tweetPhoto"] div[style*="background-image"]',
 
-      // Embedded content containers
-      'article div[style*="background"]',
-
-      // Tweet inner content that might contain media
-      '[data-testid="tweetText"] + div',
-      '[data-testid="cellInnerDiv"] > div > div'
+      // iframe embeds (videos, external content)
+      'iframe[src*="youtube"]',
+      'iframe[src*="vimeo"]',
+      'iframe[src*="twimg"]'
     ];
 
-    containerSelectors.forEach(selector => {
-      try {
-        const containers = container.querySelectorAll(selector);
-        containers.forEach(containerElement => {
-          // Skip if already processed or is a UI element
-          if (this.filteredElements.has(containerElement) || this.isUIElement(containerElement)) {
-            return;
-          }
-
-          // Check if this container has visual content
-          const hasImages = containerElement.querySelector('img, [style*="background-image"]');
-          const hasVideoContent = containerElement.querySelector('video, iframe');
-          const hasMediaContent = hasImages || hasVideoContent || containerElement.style.backgroundImage;
-
-          // Also check for card-like content with links and previews
-          const hasLinkPreview = containerElement.querySelector('a[href^="http"]') &&
-            (hasImages || containerElement.textContent.includes('http'));
-
-          if ((hasMediaContent || hasLinkPreview) && this.shouldFilterContainer(containerElement)) {
-            console.log('[XSafe] Filtering container:', selector, 'Size:', containerElement.offsetWidth, 'x', containerElement.offsetHeight, containerElement);
-            this.filterContainer(containerElement);
-          }
-        });
-      } catch (error) {
-        console.warn('[XSafe] Error with container selector:', selector, error);
-      }
-    });
-  }
-
-  shouldFilterContainer(containerElement) {
-    // More sophisticated container filtering logic
-    const rect = containerElement.getBoundingClientRect();
-
-    // Skip very small or invisible containers
-    if (rect.width < 50 || rect.height < 50) {
-      return false;
-    }
-
-    // Skip containers that are primarily text
-    const textLength = containerElement.textContent?.length || 0;
-    const imageCount = containerElement.querySelectorAll('img, [style*="background-image"]').length;
-
-    // If it's mostly text and few images, might not be a media container
-    if (textLength > 500 && imageCount === 0) {
-      return false;
-    }
-
-    // Skip navigation and UI containers
-    if (containerElement.closest('[role="navigation"], [data-testid="sidebarColumn"], header, nav')) {
-      return false;
-    }
-
-    return true;
-  }
-
-  scanForIndividualImages(container = document) {
-    // Only scan for individual images that aren't already part of filtered containers
-    const imageSelectors = [
-      // Standard individual images (outside of containers)
-      'article img[src*="pbs.twimg.com"]:not([data-xsafe-container-child])',
-      'article img[src*="ton.twimg.com"]:not([data-xsafe-container-child])',
-      'article img[src*="video.twimg.com"]:not([data-xsafe-container-child])',
-
-      // Photo links
-      'a[href*="/photo/"] img:not([data-xsafe-container-child])',
-      'a[href*="/pic/"] img:not([data-xsafe-container-child])',
-
-      // Less specific but important for catching edge cases
-      '[data-testid="cellInnerDiv"] img[src*="twimg.com"]:not([data-xsafe-container-child])',
-      'div[aria-label*="Image"] img:not([data-xsafe-container-child])',
-
-      // Background images in divs
-      'div[style*="background-image"]:not([data-xsafe-container-child])'
-    ];
-
-    // Process each selector
-    imageSelectors.forEach(selector => {
+    mediaSelectors.forEach(selector => {
       try {
         const elements = container.querySelectorAll(selector);
-        elements.forEach(element => {
-          // Skip if this element is inside an already filtered container
-          if (this.isInsideFilteredContainer(element)) {
-            return;
-          }
+        console.log(`[XSafe] Found ${elements.length} elements for selector: ${selector}`);
 
-          // Handle background image divs differently
-          if (element.tagName === 'DIV' && element.style.backgroundImage) {
-            if (!this.isUIElement(element)) {
+        elements.forEach(element => {
+          // Double-check this isn't a UI element (avatar, etc.)
+          if (!this.isUIElement(element) && !this.isInsideFilteredContainer(element)) {
+            console.log('[XSafe] Filtering individual media element:', element.tagName, element.src || 'no-src');
+
+            if (element.tagName === 'IMG') {
+              this.filterImage(element);
+            } else if (element.tagName === 'VIDEO' || element.tagName === 'IFRAME') {
+              this.filterVideo(element);
+            } else if (element.tagName === 'DIV' && element.style.backgroundImage) {
               this.filterBackgroundImage(element);
             }
-          } else if (element.tagName === 'IMG' && !this.isUIElement(element)) {
-            this.filterImage(element);
           }
         });
       } catch (error) {
-        console.warn('[XSafe] Error with individual image selector:', selector, error);
+        console.warn('[XSafe] Error with media selector:', selector, error);
       }
     });
-  }
-
-  filterContainer(containerElement) {
-    if (this.isWhitelisted(containerElement) || this.filteredElements.has(containerElement)) {
-      return;
-    }
-
-    if (this.shouldFilter(containerElement, 'image')) {
-      // Mark all child elements so they won't be processed individually
-      const childElements = containerElement.querySelectorAll('img, div, video, iframe');
-      childElements.forEach(child => {
-        child.setAttribute('data-xsafe-container-child', 'true');
-      });
-
-      console.log('[XSafe] Filtering entire container with', childElements.length, 'child elements');
-      this.replaceElement(containerElement, 'image');
-    }
-  }
-
-  isInsideFilteredContainer(element) {
-    // Check if element is inside a container that we've already filtered
-    let parent = element.parentElement;
-    while (parent) {
-      if (this.filteredElements.has(parent)) {
-        return true;
-      }
-      // Also check for our container markers
-      if (parent.hasAttribute('data-xsafe-id')) {
-        return true;
-      }
-      parent = parent.parentElement;
-    }
-    return false;
   }
 
   checkForVideo(element) {
@@ -481,62 +366,11 @@ class XSafeContentFilter {
       return;
     }
 
-    // Try to find a better parent container to filter instead of just the image
-    const betterContainer = this.findBestContainerForElement(element);
-    if (betterContainer && betterContainer !== element) {
-      console.log('[XSafe] Found better container for image:', betterContainer);
-      this.filterContainer(betterContainer);
-      return;
-    }
-
+    // Filter individual images only - preserve post structure
     if (this.shouldFilter(element, 'image')) {
+      console.log('[XSafe] Hiding individual image element, preserving post content');
       this.replaceElement(element, 'image');
     }
-  }
-
-  findBestContainerForElement(element) {
-    // Walk up the DOM to find the most appropriate container to filter
-    let current = element.parentElement;
-    let bestContainer = element;
-
-    while (current && current !== document.body) {
-      // Check if this looks like a content container
-      const isContentContainer =
-        current.getAttribute('data-testid')?.includes('card') ||
-        current.getAttribute('data-testid')?.includes('media') ||
-        current.getAttribute('data-testid')?.includes('tweet') ||
-        current.className?.includes('card') ||
-        current.className?.includes('media');
-
-      // Check if it has multiple visual elements (suggests it's a container)
-      const visualElements = current.querySelectorAll('img, video, iframe, [style*="background-image"]');
-      const hasMultipleVisualElements = visualElements.length > 1;
-
-      // Check size - if significantly larger than the original element, might be container
-      const currentRect = current.getBoundingClientRect();
-      const elementRect = element.getBoundingClientRect();
-      const isSignificantlyLarger =
-        currentRect.height > elementRect.height * 1.5 ||
-        currentRect.width > elementRect.width * 1.2;
-
-      if ((isContentContainer || hasMultipleVisualElements || isSignificantlyLarger) &&
-          !this.isUIElement(current) &&
-          this.shouldFilterContainer(current)) {
-        bestContainer = current;
-        console.log('[XSafe] Better container found:', current.tagName, current.getAttribute('data-testid'), currentRect.width + 'x' + currentRect.height);
-      }
-
-      // Don't go too far up - stop at article or main content boundaries
-      if (current.tagName === 'ARTICLE' ||
-          current.getAttribute('data-testid') === 'cellInnerDiv' ||
-          current.getAttribute('role') === 'article') {
-        break;
-      }
-
-      current = current.parentElement;
-    }
-
-    return bestContainer;
   }
 
   filterBackgroundImage(element) {
@@ -702,6 +536,65 @@ class XSafeContentFilter {
     }
 
     return isUI;
+  }
+
+  isInsideFilteredContainer(element) {
+    // Check if element is inside a container that we've already filtered
+    let parent = element.parentElement;
+    while (parent) {
+      if (this.filteredElements.has(parent)) {
+        return true;
+      }
+      // Also check for our container markers
+      if (parent.hasAttribute('data-xsafe-id')) {
+        return true;
+      }
+      parent = parent.parentElement;
+    }
+    return false;
+  }
+
+  filterContainer(containerElement) {
+    if (this.isWhitelisted(containerElement) || this.filteredElements.has(containerElement)) {
+      return;
+    }
+
+    if (this.shouldFilter(containerElement, 'image')) {
+      // Mark all child elements so they won't be processed individually
+      const childElements = containerElement.querySelectorAll('img, div, video, iframe');
+      childElements.forEach(child => {
+        child.setAttribute('data-xsafe-container-child', 'true');
+      });
+
+      console.log('[XSafe] Filtering entire container with', childElements.length, 'child elements');
+      this.replaceElement(containerElement, 'image');
+    }
+  }
+
+  shouldFilterContainer(containerElement) {
+    // More sophisticated container filtering logic
+    const rect = containerElement.getBoundingClientRect();
+
+    // Skip very small or invisible containers
+    if (rect.width < 50 || rect.height < 50) {
+      return false;
+    }
+
+    // Skip containers that are primarily text
+    const textLength = containerElement.textContent?.length || 0;
+    const imageCount = containerElement.querySelectorAll('img, [style*="background-image"]').length;
+
+    // If it's mostly text and few images, might not be a media container
+    if (textLength > 500 && imageCount === 0) {
+      return false;
+    }
+
+    // Skip navigation and UI containers
+    if (containerElement.closest('[role="navigation"], [data-testid="sidebarColumn"], header, nav')) {
+      return false;
+    }
+
+    return true;
   }
 }
 
