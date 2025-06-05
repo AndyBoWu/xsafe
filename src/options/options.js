@@ -284,7 +284,7 @@ class XSafeOptions {
   }
 
   updateGeneralSettings() {
-    if (!this.settings) return;
+    if (!this.settings) {return;}
 
     // Enable filtering
     const enableFiltering = document.getElementById('enableFiltering');
@@ -311,7 +311,7 @@ class XSafeOptions {
   }
 
   updateContentFiltering() {
-    if (!this.settings) return;
+    if (!this.settings) {return;}
 
     // Intensity slider
     const intensityRange = document.getElementById('intensityRange');
@@ -340,7 +340,7 @@ class XSafeOptions {
 
   renderCustomRules() {
     const container = document.getElementById('customRules');
-    if (!container || !this.settings) return;
+    if (!container || !this.settings) {return;}
 
     container.innerHTML = '';
 
@@ -428,7 +428,7 @@ class XSafeOptions {
 
   renderDomainList(type) {
     const container = document.getElementById(`${type}Domains`);
-    if (!container || !this.settings) return;
+    if (!container || !this.settings) {return;}
 
     const domains = type === 'whitelist' ?
       this.settings.whitelistedDomains :
@@ -475,10 +475,10 @@ class XSafeOptions {
 
   addDomain(type) {
     const input = document.getElementById(`${type}Input`);
-    if (!input) return;
+    if (!input) {return;}
 
     const domain = input.value.trim().toLowerCase();
-    if (!domain) return;
+    if (!domain) {return;}
 
     // Validate domain format
     if (!this.isValidDomain(domain)) {
@@ -521,7 +521,7 @@ class XSafeOptions {
   }
 
   updateStatistics() {
-    if (!this.stats) return;
+    if (!this.stats) {return;}
 
     // Overall stats
     const totalFiltered = document.getElementById('totalFiltered');
@@ -545,15 +545,15 @@ class XSafeOptions {
 
     if (avgProcessingTime) {
       avgProcessingTime.textContent =
-        this.stats.performanceMetrics.avgProcessingTime.toFixed(2) + 'ms';
+        `${this.stats.performanceMetrics.avgProcessingTime.toFixed(2)  }ms`;
     }
     if (pageLoadImpact) {
       pageLoadImpact.textContent =
-        this.stats.performanceMetrics.pageLoadImpact.toFixed(2) + 'ms';
+        `${this.stats.performanceMetrics.pageLoadImpact.toFixed(2)  }ms`;
     }
     if (memoryUsage) {
       memoryUsage.textContent =
-        (this.stats.performanceMetrics.memoryUsage / (1024 * 1024)).toFixed(1) + 'MB';
+        `${(this.stats.performanceMetrics.memoryUsage / (1024 * 1024)).toFixed(1)  }MB`;
     }
 
     // Top domains
@@ -562,7 +562,7 @@ class XSafeOptions {
 
   renderTopDomains() {
     const container = document.getElementById('topDomains');
-    if (!container || !this.stats) return;
+    if (!container || !this.stats) {return;}
 
     const domainStats = this.stats.domainStats || {};
     const sortedDomains = Object.entries(domainStats)
@@ -593,7 +593,7 @@ class XSafeOptions {
   }
 
   async updateSetting(key, value) {
-    if (!this.settings) return;
+    if (!this.settings) {return;}
 
     this.settings[key] = value;
     this.markUnsavedChanges();
@@ -671,9 +671,9 @@ class XSafeOptions {
 
   formatNumber(num) {
     if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
+      return `${(num / 1000000).toFixed(1)  }M`;
     } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
+      return `${(num / 1000).toFixed(1)  }K`;
     }
     return num.toString();
   }

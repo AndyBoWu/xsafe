@@ -49,15 +49,15 @@ class XSafeContentFilter {
 
   async handleMessage(message, sender, sendResponse) {
     switch (message.type) {
-      case 'UPDATE_FILTERS':
-        this.settings = message.settings;
-        if (this.settings.enabled) {
-          this.startFiltering();
-        } else {
-          this.stopFiltering();
-        }
-        sendResponse({ success: true });
-        break;
+    case 'UPDATE_FILTERS':
+      this.settings = message.settings;
+      if (this.settings.enabled) {
+        this.startFiltering();
+      } else {
+        this.stopFiltering();
+      }
+      sendResponse({ success: true });
+      break;
     }
   }
 
@@ -397,7 +397,7 @@ class XSafeContentFilter {
   }
 
   injectPlaceholderCSS() {
-    if (document.getElementById('xsafe-styles')) return;
+    if (document.getElementById('xsafe-styles')) {return;}
 
     const styles = document.createElement('style');
     styles.id = 'xsafe-styles';

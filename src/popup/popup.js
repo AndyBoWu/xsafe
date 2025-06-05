@@ -122,7 +122,7 @@ class XSafePopup {
     const statusDot = document.getElementById('statusDot');
     const statusText = document.getElementById('statusText');
 
-    if (!statusDot || !statusText) return;
+    if (!statusDot || !statusText) {return;}
 
     if (!this.settings) {
       statusDot.className = 'status-dot loading';
@@ -147,7 +147,7 @@ class XSafePopup {
   }
 
   updateFilterMode() {
-    if (!this.settings) return;
+    if (!this.settings) {return;}
 
     const filterModeInputs = document.querySelectorAll('input[name="filterMode"]');
     filterModeInputs.forEach(input => {
@@ -159,7 +159,7 @@ class XSafePopup {
     const intensitySlider = document.getElementById('intensitySlider');
     const intensityLabels = document.querySelectorAll('.intensity-label');
 
-    if (!intensitySlider || !this.settings) return;
+    if (!intensitySlider || !this.settings) {return;}
 
     const intensityMap = {
       'permissive': 0,
@@ -178,7 +178,7 @@ class XSafePopup {
   }
 
   updateStats() {
-    if (!this.currentStats) return;
+    if (!this.currentStats) {return;}
 
     // Update current page stats (would need tab-specific tracking)
     const videosFiltered = document.getElementById('videosFiltered');
@@ -196,7 +196,7 @@ class XSafePopup {
 
   updateWhitelistButton() {
     const whitelistBtn = document.getElementById('whitelistBtn');
-    if (!whitelistBtn || !this.settings || !this.currentDomain) return;
+    if (!whitelistBtn || !this.settings || !this.currentDomain) {return;}
 
     const isWhitelisted = this.settings.whitelistedDomains.includes(this.currentDomain);
 
@@ -240,7 +240,7 @@ class XSafePopup {
   }
 
   async handleWhitelistToggle() {
-    if (!this.currentDomain || !this.settings) return;
+    if (!this.currentDomain || !this.settings) {return;}
 
     const whitelistedDomains = [...this.settings.whitelistedDomains];
     const isWhitelisted = whitelistedDomains.includes(this.currentDomain);
@@ -285,9 +285,9 @@ class XSafePopup {
 
   formatNumber(num) {
     if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
+      return `${(num / 1000000).toFixed(1)  }M`;
     } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
+      return `${(num / 1000).toFixed(1)  }K`;
     }
     return num.toString();
   }

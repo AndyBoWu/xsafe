@@ -49,40 +49,40 @@ class XSafeBackground {
   async handleMessage(message, sender, sendResponse) {
     try {
       switch (message.type) {
-        case 'GET_SETTINGS':
-          const settings = await this.settings.getAll();
-          sendResponse({ success: true, data: settings });
-          break;
+      case 'GET_SETTINGS':
+        const settings = await this.settings.getAll();
+        sendResponse({ success: true, data: settings });
+        break;
 
-        case 'UPDATE_SETTING':
-          await this.settings.set(message.key, message.value);
-          await this.updateAllTabs();
-          sendResponse({ success: true });
-          break;
+      case 'UPDATE_SETTING':
+        await this.settings.set(message.key, message.value);
+        await this.updateAllTabs();
+        sendResponse({ success: true });
+        break;
 
-        case 'RESET_SETTINGS':
-          await this.settings.reset();
-          await this.updateAllTabs();
-          sendResponse({ success: true });
-          break;
+      case 'RESET_SETTINGS':
+        await this.settings.reset();
+        await this.updateAllTabs();
+        sendResponse({ success: true });
+        break;
 
-        case 'GET_STATS':
-          const stats = await this.statsTracker.getStats();
-          sendResponse({ success: true, data: stats });
-          break;
+      case 'GET_STATS':
+        const stats = await this.statsTracker.getStats();
+        sendResponse({ success: true, data: stats });
+        break;
 
-        case 'CONTENT_FILTERED':
-          await this.statsTracker.recordFiltering(message.data);
-          sendResponse({ success: true });
-          break;
+      case 'CONTENT_FILTERED':
+        await this.statsTracker.recordFiltering(message.data);
+        sendResponse({ success: true });
+        break;
 
-        case 'PERFORMANCE_DATA':
-          await this.statsTracker.recordPerformance(message.data);
-          sendResponse({ success: true });
-          break;
+      case 'PERFORMANCE_DATA':
+        await this.statsTracker.recordPerformance(message.data);
+        sendResponse({ success: true });
+        break;
 
-        default:
-          sendResponse({ success: false, error: 'Unknown message type' });
+      default:
+        sendResponse({ success: false, error: 'Unknown message type' });
       }
     } catch (error) {
       console.error('[XSafe] Error handling message:', error);
@@ -245,8 +245,8 @@ class StatsTracker {
     const stats = await this.getStats();
 
     stats.totalContentFiltered += data.count || 1;
-    if (data.type === 'video') stats.videosFiltered += data.count || 1;
-    if (data.type === 'image') stats.imagesFiltered += data.count || 1;
+    if (data.type === 'video') {stats.videosFiltered += data.count || 1;}
+    if (data.type === 'image') {stats.imagesFiltered += data.count || 1;}
 
     // Update daily stats
     const today = new Date().toISOString().split('T')[0];
@@ -254,8 +254,8 @@ class StatsTracker {
       stats.dailyStats[today] = { videos: 0, images: 0, total: 0 };
     }
     stats.dailyStats[today].total += data.count || 1;
-    if (data.type === 'video') stats.dailyStats[today].videos += data.count || 1;
-    if (data.type === 'image') stats.dailyStats[today].images += data.count || 1;
+    if (data.type === 'video') {stats.dailyStats[today].videos += data.count || 1;}
+    if (data.type === 'image') {stats.dailyStats[today].images += data.count || 1;}
 
     // Update domain stats
     if (data.domain) {
@@ -263,8 +263,8 @@ class StatsTracker {
         stats.domainStats[data.domain] = { videos: 0, images: 0, total: 0 };
       }
       stats.domainStats[data.domain].total += data.count || 1;
-      if (data.type === 'video') stats.domainStats[data.domain].videos += data.count || 1;
-      if (data.type === 'image') stats.domainStats[data.domain].images += data.count || 1;
+      if (data.type === 'video') {stats.domainStats[data.domain].videos += data.count || 1;}
+      if (data.type === 'image') {stats.domainStats[data.domain].images += data.count || 1;}
     }
 
     stats.lastUpdated = Date.now();
