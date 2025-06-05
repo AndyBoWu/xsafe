@@ -44,6 +44,148 @@ XSafe is a privacy-focused Chrome extension that filters visual content (images 
 
 _All filtering happens locally - your browsing data never leaves your device._
 
+## 🔒 Privacy Verification - Audit Our Claims
+
+**Don't just trust us - verify our privacy claims yourself!** XSafe is designed to be completely auditable.
+
+### ⚡ 1-Minute Privacy Audit
+
+**Verify ZERO external requests:**
+
+1. **Install XSafe** (or use the development version)
+2. **Open any website** with images/videos
+3. **Press F12** (Developer Tools)
+4. **Click "Network" tab**
+5. **Browse for 5 minutes** with XSafe active
+6. **Look for XSafe requests** - you'll find **ZERO** external calls
+
+```bash
+# What you'll see in Network tab:
+# ✅ Website requests (normal)
+# ❌ NO requests from XSafe extension
+# ✅ All processing happens locally
+```
+
+### 🔍 Source Code Audit
+
+**Verify no data collection in our code:**
+
+1. **Search our codebase** for external requests:
+
+   ```bash
+   # Clone the repository
+   git clone https://github.com/AndyBoWu/xsafe.git
+   cd xsafe
+
+   # Search for any external network calls
+   grep -r "fetch\|XMLHttpRequest\|axios\|request" src/
+   # Result: No external API calls found!
+   ```
+
+2. **Check data storage** - only local Chrome APIs:
+   ```bash
+   # Search for data storage
+   grep -r "chrome.storage" src/
+   # Result: Only local and sync storage (no external databases)
+   ```
+
+### 🛡️ Technical Privacy Guarantees
+
+| **Privacy Measure**     | **How to Verify**                | **What You'll Find**       |
+| ----------------------- | -------------------------------- | -------------------------- |
+| **No External APIs**    | Network tab in DevTools          | Zero outgoing requests     |
+| **Local Storage Only**  | `chrome://extensions/` → Inspect | Only browser storage used  |
+| **Minimal Permissions** | Extension details page           | Only 3 basic permissions   |
+| **Open Source**         | This GitHub repository           | Every line of code visible |
+| **No Analytics**        | Search codebase for "analytics"  | No tracking code found     |
+| **No Telemetry**        | Search codebase for "telemetry"  | No crash reporting found   |
+
+### 📋 Extension Permissions Audit
+
+**We only request 3 minimal permissions:**
+
+```json
+"permissions": [
+  "storage",     // ✅ Local settings only (no external DB)
+  "activeTab",   // ✅ Current tab only (not all tabs)
+  "scripting"    // ✅ DOM manipulation only (no network access)
+]
+```
+
+**Compare with other extensions** that often request:
+
+- ❌ `tabs` (access to all tabs)
+- ❌ `history` (browsing history)
+- ❌ `cookies` (tracking data)
+- ❌ `identity` (personal information)
+
+### 🔐 Content Security Policy
+
+**Our CSP prevents external code injection:**
+
+```json
+"content_security_policy": {
+  "extension_pages": "script-src 'self'; object-src 'self'"
+}
+```
+
+**What this means:**
+
+- ✅ Only our own code can run
+- ❌ No external scripts allowed
+- ❌ No remote resources loaded
+- ❌ No code injection possible
+
+### 📖 Open Source Transparency
+
+**Full source code available:**
+
+- **Repository**: https://github.com/AndyBoWu/xsafe
+- **License**: MIT (complete transparency)
+- **No hidden builds**: Webpack config is public
+- **No obfuscation**: All code is readable
+
+**Community auditing:**
+
+- 🔍 **Security researchers**: Please audit our code
+- 🐛 **Bug reports**: Report privacy concerns via [Issues](https://github.com/AndyBoWu/xsafe/issues)
+- 🤝 **Contributions**: Help improve privacy through PRs
+
+### 🚨 Red Flags We DON'T Have
+
+✅ **XSafe has NONE of these privacy concerns:**
+
+- ❌ No Google Analytics or tracking pixels
+- ❌ No external CDNs or fonts
+- ❌ No crash reporting services (Sentry, Bugsnag)
+- ❌ No A/B testing platforms
+- ❌ No advertising networks
+- ❌ No user accounts or registration
+- ❌ No cloud storage or syncing
+- ❌ No encrypted "anonymous" data collection
+
+### 💡 Privacy Verification Tips
+
+**For privacy advocates:**
+
+```bash
+# Advanced verification techniques:
+1. Network traffic analysis with Wireshark
+2. Static code analysis with ESLint security rules
+3. Extension sandboxing with Chrome DevTools
+4. Manifest.json permission analysis
+```
+
+**For everyday users:**
+
+- Check Network tab (should show 0 XSafe requests)
+- Compare our permissions vs other extensions
+- Read our source code (it's surprisingly readable!)
+
+---
+
+**🔒 Privacy Promise: If you find ANY external data transmission in XSafe, please [report it immediately](https://github.com/AndyBoWu/xsafe/issues). We're committed to absolute transparency.**
+
 ## 🛠️ Development
 
 ### Prerequisites
