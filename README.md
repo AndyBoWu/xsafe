@@ -2,16 +2,19 @@
 
 **Block NSFW content on Twitter/X • Zero data collection • Local processing only**
 
-XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos on Twitter/X timeline without collecting any personal data. All processing happens locally on your device.
+XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos on Twitter/X timeline without collecting any personal data. All processing happens locally on your device with optimized performance.
 
 ## 🚀 Features
 
 - **🛡️ NSFW Protection**: Block inappropriate images and videos on Twitter/X timeline
-- **🎯 Timeline Focused**: Specifically designed for X.com main timeline content
+- **🎯 Twitter/X Focused**: Specifically designed for X.com and Twitter.com content
 - **📊 Privacy-First**: No data collection, tracking, or external servers
-- **⚙️ Simple Controls**: Easy toggle switches for videos and images
+- **⚙️ Simple Toggle**: Easy Safe Mode switch - one toggle for complete protection
 - **🔒 Local Processing**: Everything processed on your device only
-- **⚡ Lightweight**: Minimal impact on Twitter/X browsing performance
+- **⚡ Optimized Performance**: Lightweight with 2-second scanning for fast content detection
+- **🎨 Compact Placeholders**: Twitter-native styled placeholders that don't disrupt timeline flow
+- **🔧 Click to Reveal**: Option to reveal filtered content when needed
+- **🚫 Profile Picture Protection**: Smart filtering that excludes avatars and UI elements
 
 ## 🎯 Perfect For
 
@@ -20,6 +23,26 @@ XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos o
 - **📚 Educational Settings**: Safe social media access in schools/libraries
 - **🏢 Corporate Networks**: Maintain professional browsing standards
 - **🔒 Privacy Conscious**: Users who want content filtering without data collection
+
+## 💫 Current Interface
+
+**Simple Safe Mode Toggle:**
+
+- **Normal Mode**: Content displays normally
+- **Safe Mode**: Automatically filters images and videos with compact placeholders
+- **Visual Feedback**: Green background when Safe Mode is active
+- **GitHub Link**: Direct access to source code for transparency
+
+## ⚡ Performance Optimizations
+
+**Recent performance improvements eliminate browser crashes:**
+
+- **🔄 Smart Scanning**: 2-second periodic scanning with cooldown protection
+- **🎯 Optimized Selectors**: 93% reduction in DOM queries (from 27 to 2 combined selectors)
+- **🧹 Memory Management**: Automatic cleanup with limits (max 200 filtered elements)
+- **📱 Efficient Observers**: Targeted mutation detection with 1-second debouncing
+- **💾 Caching**: UI element detection caching to prevent repeated expensive checks
+- **🔧 Proper Cleanup**: All intervals, observers, and caches are properly managed
 
 ## 🔒 Privacy Verification - Audit Our Claims
 
@@ -168,6 +191,45 @@ XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos o
 ---
 
 **🔒 Privacy Promise: If you find ANY external data transmission in XSafe, please [report it immediately](https://github.com/AndyBoWu/xsafe/issues). We're committed to absolute transparency.**
+
+## 🛠️ Installation
+
+### From Source (Recommended for Privacy)
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/AndyBoWu/xsafe.git
+   cd xsafe
+   ```
+
+2. **Install dependencies**:
+
+   ```bash
+   npm install
+   ```
+
+3. **Build the extension**:
+
+   ```bash
+   npm run build
+   ```
+
+4. **Load in Chrome**:
+
+   - Open `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked" and select the `dist/` folder
+
+5. **Verify Installation**:
+   - Visit Twitter/X
+   - Click the XSafe extension icon
+   - Toggle Safe Mode ON (green background)
+   - Images and videos should be filtered automatically
+
+### Chrome Web Store (Coming Soon)
+
+The extension will be available on the Chrome Web Store for easier installation.
 
 ## 🛠️ Development
 

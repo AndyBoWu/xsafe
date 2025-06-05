@@ -5,9 +5,11 @@
 ### 1.1 Architecture Principles
 
 - **Privacy-First**: All processing happens locally, zero external requests
-- **Performance-Optimized**: Minimal impact on browsing experience
+- **Performance-Optimized**: Lightweight with 2-second scanning and 93% query reduction
+- **Memory-Conscious**: Automatic cleanup with limits to prevent browser crashes
 - **Modular Design**: Clean separation of concerns
 - **Manifest V3 Compliant**: Latest Chrome extension standards
+- **Twitter/X Focused**: Specialized for X.com and Twitter.com content filtering
 
 ### 1.2 High-Level Architecture
 
@@ -18,334 +20,389 @@
 │  Background Service Worker                          │
 │  ├── Settings Manager                               │
 │  ├── Filter Engine Controller                      │
-│  └── Statistics Tracker                            │
+│  └── Message Router                                │
 ├─────────────────────────────────────────────────────┤
-│  Content Scripts                                    │
-│  ├── DOM Scanner                                    │
-│  ├── Content Filter                                │
-│  ├── Element Replacer                              │
-│  └── Performance Monitor                           │
+│  Content Scripts (Performance Optimized)           │
+│  ├── Smart DOM Scanner (2s interval + cooldown)    │
+│  ├── Optimized Content Filter (2 combined queries) │
+│  ├── Element Replacer (Compact placeholders)       │
+│  ├── UI Element Detector (Cached)                  │
+│  └── Memory Manager (Cleanup + Limits)             │
 ├─────────────────────────────────────────────────────┤
 │  UI Components                                      │
-│  ├── Extension Popup                               │
+│  ├── Simplified Popup (Safe Mode Toggle)           │
 │  ├── Options Page                                  │
-│  └── Filter Indicators                             │
+│  └── Twitter-Native Placeholders                   │
 ├─────────────────────────────────────────────────────┤
 │  Storage Layer                                      │
 │  ├── Local Storage (Settings)                      │
-│  ├── Session Storage (Temp Data)                   │
-│  └── IndexedDB (Statistics)                        │
+│  └── Session Cache (UI Detection)                  │
 └─────────────────────────────────────────────────────┘
 ```
 
-## 2. Component Architecture
+## 2. Performance Architecture
 
-### 2.1 Background Service Worker (`background.js`)
+### 2.1 Optimized Content Detection
 
-**Purpose**: Central coordination and settings management
+**Key Performance Improvements**:
+
+- **Combined Selectors**: Reduced from 27 individual queries to 2 combined queries (93% reduction)
+- **Smart Scanning**: 2-second periodic scanning with 2-second cooldown protection
+- **Memory Limits**: Max 200 filtered elements, 500 cached UI detections
+- **Targeted Observers**: Mutation observer only watches Twitter content areas
+- **Efficient Debouncing**: 1-second debounce on mutation detection
+
+### 2.2 Memory Management
+
+```javascript
+// Automatic cleanup implementation
+class XSafeContentFilter {
+  constructor() {
+    this.maxFilteredElements = 200; // Prevent memory leaks
+    this.uiElementCache = new Map(); // UI detection cache
+    this.scanCooldown = 2000; // Minimum time between scans
+  }
+
+  limitFilteredElements() {
+    if (this.filteredElements.size > this.maxFilteredElements) {
+      // Remove oldest elements
+      const elementsToRemove =
+        this.filteredElements.size - this.maxFilteredElements;
+      // ... cleanup logic
+    }
+  }
+}
+```
+
+### 2.3 Optimized Selectors
+
+**Before (Memory Intensive)**:
+
+```javascript
+// 27 individual DOM queries
+const selectors = [
+  "img",
+  "picture",
+  '[style*="background-image"]',
+  '[data-testid="tweetPhoto"] img',
+  '[data-testid="Tweet-User-Avatar"] img',
+  // ... 22 more individual selectors
+];
+```
+
+**After (Performance Optimized)**:
+
+```javascript
+// 2 combined queries
+const imageSelector = [
+  '[data-testid="tweetPhoto"] img',
+  '[data-testid="media"] img',
+  '[data-testid="card.layoutLarge.media"] img',
+  'article [data-testid="cellInnerDiv"] img[src*="pbs.twimg.com"]',
+  'a[href*="/photo/"] img',
+].join(", ");
+
+const videoSelector = [
+  "video",
+  '[data-testid="videoPlayer"]',
+  '[data-testid="videoComponent"]',
+  'iframe[src*="youtube"], iframe[src*="vimeo"]',
+].join(", ");
+```
+
+## 3. Component Architecture
+
+### 3.1 Background Service Worker (`background.js`)
+
+**Purpose**: Lightweight coordination and settings management
 
 **Responsibilities**:
 
 - Manage user preferences and settings
-- Coordinate between content scripts and UI
-- Handle extension lifecycle events
-- Monitor performance metrics
-- Manage filter rules and configurations
+- Handle communication between popup and content scripts
+- Extension lifecycle events
 
 **Key Functions**:
 
 ```javascript
-// Settings management
+// Simplified settings management
 settingsManager.get(key);
 settingsManager.set(key, value);
-settingsManager.reset();
-
-// Filter coordination
-filterController.updateRules(rules);
-filterController.getActiveFilters();
-
-// Statistics
-statsTracker.recordEvent(event);
-statsTracker.getStats();
+settingsManager.handleMessage(message, sender, sendResponse);
 ```
 
-### 2.2 Content Scripts (`content/`)
+### 3.2 Content Scripts (`content/content.js`)
 
-**Purpose**: DOM manipulation and content filtering
+**Purpose**: High-performance DOM manipulation and content filtering
 
-#### 2.2.1 DOM Scanner (`content/scanner.js`)
+#### 3.2.1 Smart DOM Scanner
 
-- Detect video and image elements
-- Monitor dynamic content loading
-- Identify content types and sources
-- Performance-optimized scanning with throttling
+- **Optimized Frequency**: 2-second scanning with cooldown protection
+- **Targeted Detection**: Combined selectors for efficient querying
+- **Memory Conscious**: Limited processing (max 50 elements per scan)
+- **Cache Utilization**: UI element detection caching
 
-#### 2.2.2 Content Filter (`content/filter.js`)
+#### 3.2.2 Content Filter
 
-- Apply filtering rules to detected content
-- Handle different filter modes (videos, images, both)
-- Manage whitelist/blacklist logic
-- Process intensity levels (strict, moderate, permissive)
+- **Safe Mode Toggle**: Single toggle for complete protection
+- **Profile Protection**: Smart filtering that excludes avatars and UI elements
+- **Performance Monitoring**: Only logs slow scans (>100ms)
 
-#### 2.2.3 Element Replacer (`content/replacer.js`)
+#### 3.2.3 Element Replacer
 
-- Replace filtered content with placeholders
-- Provide "show content" options
-- Maintain original element properties
-- Handle responsive design considerations
+- **Compact Placeholders**: Twitter-native styled, maximum 150px height
+- **Click to Reveal**: Optional content revelation
+- **Responsive Design**: Mobile-friendly sizing
 
-#### 2.2.4 Performance Monitor (`content/monitor.js`)
+#### 3.2.4 Memory Manager
 
-- Track filtering performance
-- Monitor page load impact
-- Report metrics to background script
-- Optimize scanning frequency
+- **Automatic Cleanup**: Regular cleanup of old filtered elements
+- **Cache Limits**: UI detection cache capped at 500 entries
+- **Proper Disposal**: All intervals and observers properly cleaned up
 
-### 2.3 User Interface Components
+### 3.3 User Interface Components
 
-#### 2.3.1 Extension Popup (`popup/`)
+#### 3.3.1 Simplified Popup (`popup/`)
 
-- Quick toggle on/off
-- Current page filtering status
-- Quick settings access
-- Performance indicators
+- **Safe Mode Toggle**: Single switch (Normal/Safe Mode)
+- **Visual Feedback**: Green background when Safe Mode active
+- **GitHub Link**: Direct access to source code
+- **Compact Design**: 260px width for better proportions
 
-#### 2.3.2 Options Page (`options/`)
+#### 3.3.2 Options Page (`options/`)
 
 - Detailed filter configuration
-- Whitelist/blacklist management
+- Domain management
 - Statistics and reports
-- Import/export settings
+- Advanced settings
 
-#### 2.3.3 Filter Indicators
+#### 3.3.3 Twitter-Native Placeholders
 
-- Visual feedback when content is filtered
-- Non-intrusive notifications
-- Click-to-reveal functionality
+- **Compact Size**: Maximum 150px height, minimum 80px
+- **Twitter Styling**: Uses Twitter blue (#1d9bf0) and rounded corners
+- **Non-Disruptive**: Maintains timeline flow
+- **Branded**: Clear XSafe identification
 
-## 3. Data Flow Architecture
+## 4. Data Flow Architecture
 
-### 3.1 Content Detection Flow
+### 4.1 Optimized Content Detection Flow
 
 ```
-Page Load → DOM Scanner → Content Detection → Filter Engine → Element Replacement
+Page Load → Smart Scanner → Combined Queries → Filter Engine → Compact Placeholders
     ↓           ↓              ↓                ↓               ↓
-Performance  Element       Filter Rules     Processing      User Feedback
-Monitoring   Classification   Application     Decision        & Statistics
+Cooldown    Cache Check    Efficient DOM     Processing      Visual Integration
+Protection  (UI Elements)  Access (2 queries) Decision       (Twitter-styled)
 ```
 
-### 3.2 Settings Management Flow
+### 4.2 Settings Management Flow
 
 ```
-UI Input → Validation → Background Worker → Storage → Content Script Update
-    ↓         ↓             ↓                 ↓           ↓
-User       Data Check    Settings Sync    Persistence   Live Filter Update
-Action     & Sanitize    Coordination     (Local)       (All Tabs)
+Safe Mode Toggle → Validation → Background Worker → Storage → Immediate Content Update
+    ↓                ↓             ↓                 ↓           ↓
+User Toggles      Simple Check   Settings Sync    Persistence  Live Filter Update
+(Normal/Safe)     (enabled/mode) Coordination     (Local)      (Current Tab)
 ```
 
-### 3.3 Communication Architecture
+### 4.3 Communication Architecture
 
 ```javascript
-// Popup ↔ Background
+// Popup ↔ Background (Simplified)
 chrome.runtime.sendMessage({ type: "GET_SETTINGS" });
 chrome.runtime.sendMessage({ type: "UPDATE_SETTING", key, value });
 
-// Background ↔ Content Script
-chrome.tabs.sendMessage(tabId, { type: "UPDATE_FILTERS", filters });
-chrome.runtime.onMessage.addListener((message, sender, sendResponse));
+// Background ↔ Content Script (Optimized)
+chrome.tabs.sendMessage(tabId, {
+  type: "UPDATE_FILTERS",
+  settings: { enabled: true, filterMode: "both" },
+});
 
-// Content Script → Background (Events)
-chrome.runtime.sendMessage({ type: "CONTENT_FILTERED", count, performance });
+// Reduced Event Reporting (Performance)
+// Only critical events reported to background
 ```
 
-## 4. Technical Implementation Details
+## 5. Technical Implementation Details
 
-### 4.1 Manifest V3 Configuration
+### 5.1 Manifest V3 Configuration (Optimized)
 
 ```json
 {
   "manifest_version": 3,
+  "name": "XSafe - Twitter/X Content Filter",
   "permissions": ["storage", "activeTab", "scripting"],
-  "host_permissions": ["http://*/*", "https://*/*"],
+  "host_permissions": ["*://x.com/*", "*://twitter.com/*"],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content/main.js"],
+      "matches": ["*://x.com/*", "*://twitter.com/*"],
+      "js": ["content.js"],
       "run_at": "document_start"
     }
   ]
 }
 ```
 
-### 4.2 Content Detection Algorithms
+### 5.2 Performance Optimization Techniques
 
-#### 4.2.1 Video Detection
-
-```javascript
-// Detect multiple video types
-const videoSelectors = [
-  "video", // HTML5 video
-  'iframe[src*="youtube"]', // YouTube embeds
-  'iframe[src*="vimeo"]', // Vimeo embeds
-  'iframe[src*="twitch"]', // Twitch embeds
-  "[data-video-id]", // Custom video players
-  ".video-player", // Common CSS classes
-  '[class*="video"]', // Video-related classes
-];
-```
-
-#### 4.2.2 Image Detection
+#### 5.2.1 Scanning Optimization
 
 ```javascript
-// Comprehensive image detection
-const imageSelectors = [
-  "img", // Standard images
-  '[style*="background-image"]', // CSS background images
-  "picture source", // Responsive images
-  "svg image", // SVG images
-  "[data-src]", // Lazy-loaded images
-  ".image-container img", // Container-based images
-];
-```
-
-### 4.3 Performance Optimization
-
-#### 4.3.1 Efficient DOM Scanning
-
-```javascript
-// Throttled scanning with IntersectionObserver
-const observer = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        scanElement(entry.target);
-      }
-    });
-  },
-  { threshold: 0.1 }
-);
-
-// Debounced mutation observer
-const debouncedScan = debounce(scanNewContent, 100);
-const mutationObserver = new MutationObserver(debouncedScan);
-```
-
-#### 4.3.2 Memory Management
-
-```javascript
-// Cleanup strategy
-const cleanup = () => {
-  observer.disconnect();
-  mutationObserver.disconnect();
-  replacedElements.clear();
-  performanceMetrics.reset();
-};
-```
-
-### 4.4 Storage Strategy
-
-#### 4.4.1 Settings Storage (chrome.storage.sync)
-
-```javascript
-// Sync across devices (if user opts in)
-const defaultSettings = {
-  filterMode: "both", // 'videos', 'images', 'both', 'off'
-  intensityLevel: "moderate", // 'strict', 'moderate', 'permissive'
-  showPlaceholders: true,
-  whitelistedDomains: [],
-  blacklistedDomains: [],
-  customRules: [],
-};
-```
-
-#### 4.4.2 Statistics Storage (chrome.storage.local)
-
-```javascript
-// Local-only statistics
-const statsSchema = {
-  totalContentFiltered: 0,
-  videosFiltered: 0,
-  imagesFiltered: 0,
-  performanceMetrics: {
-    avgProcessingTime: 0,
-    pageLoadImpact: 0,
-    memoryUsage: 0,
-  },
-  dailyStats: {}, // Date-keyed statistics
-  domainStats: {}, // Per-domain filtering stats
-};
-```
-
-## 5. Security & Privacy Implementation
-
-### 5.1 Content Security Policy
-
-```json
-{
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+// Cooldown protection
+canScan() {
+  const now = Date.now();
+  if (now - this.lastScanTime < this.scanCooldown) {
+    return false; // Too soon since last scan
   }
+  return true;
+}
+
+// Limited processing
+scanNewContent() {
+  const addedNodes = document.querySelectorAll('*:not([data-xsafe-scanned])');
+  let scannedCount = 0;
+
+  addedNodes.forEach(node => {
+    if (scannedCount < 50) { // Limit processing to prevent overload
+      this.scanElement(node);
+      scannedCount++;
+    }
+  });
 }
 ```
 
-### 5.2 Privacy Safeguards
-
-- **No external requests**: All processing happens locally
-- **No data transmission**: Zero telemetry or analytics
-- **Local storage only**: Settings stored in browser only
-- **No tracking**: No user identification or behavior tracking
-- **Minimal permissions**: Only essential permissions requested
-
-### 5.3 Data Sanitization
+#### 5.2.2 UI Element Detection with Caching
 
 ```javascript
-// Sanitize all user inputs
-const sanitizeInput = (input) => {
-  return input.replace(/[<>'"&]/g, (char) => {
-    const entities = {
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-      "&": "&amp;",
-    };
-    return entities[char];
-  });
-};
+isUIElement(element) {
+  // Use cache to avoid repeated expensive checks
+  const cacheKey = element.src || element.outerHTML.substring(0, 100);
+  if (this.uiElementCache.has(cacheKey)) {
+    return this.uiElementCache.get(cacheKey);
+  }
+
+  let isUI = false;
+  // Quick checks for common UI elements
+  if (element.getAttribute('data-testid')?.includes('avatar') ||
+      element.getAttribute('alt')?.toLowerCase().includes('avatar')) {
+    isUI = true;
+  }
+
+  // Cache the result with size limit
+  this.uiElementCache.set(cacheKey, isUI);
+  if (this.uiElementCache.size > 500) {
+    const firstKey = this.uiElementCache.keys().next().value;
+    this.uiElementCache.delete(firstKey);
+  }
+
+  return isUI;
+}
 ```
 
-## 6. Testing Strategy
+## 6. Browser Crash Prevention
 
-### 6.1 Unit Testing
+### 6.1 Memory Leak Prevention
+
+- **Filtered Elements Limit**: Maximum 200 filtered elements in memory
+- **Cache Size Limits**: UI detection cache capped at 500 entries
+- **Proper Cleanup**: All intervals and observers properly disposed
+- **No Performance Tracking**: Removed memory-intensive performance monitoring
+
+### 6.2 CPU Usage Optimization
+
+- **Query Reduction**: 93% fewer DOM queries (27 → 2)
+- **Scanning Frequency**: Balanced 2-second interval with cooldown
+- **Observer Optimization**: Targeted mutation observer scope
+- **Processing Limits**: Maximum 50 elements processed per scan
+
+### 6.3 Resource Management
+
+```javascript
+cleanup() {
+  // Clear caches and sets to prevent memory leaks
+  this.filteredElements.clear();
+  this.uiElementCache.clear();
+}
+
+stopFiltering() {
+  this.isFiltering = false;
+
+  // Properly clean up all resources
+  if (this.observer) {
+    this.observer.disconnect();
+    this.observer = null;
+  }
+  if (this.mutationObserver) {
+    this.mutationObserver.disconnect();
+    this.mutationObserver = null;
+  }
+  if (this.periodicScanInterval) {
+    clearInterval(this.periodicScanInterval);
+    this.periodicScanInterval = null;
+  }
+
+  this.cleanup();
+}
+```
+
+## 7. Privacy Architecture
+
+### 7.1 Local Processing Only
+
+- **Zero External Requests**: All content analysis happens locally
+- **No Analytics**: No tracking or telemetry
+- **Local Storage Only**: Settings stored in browser storage
+- **No Performance Reporting**: Removed external performance metrics
+
+### 7.2 Minimal Permissions
+
+```json
+"permissions": [
+  "storage",     // Local settings only
+  "activeTab",   // Current tab only
+  "scripting"    // DOM manipulation only
+]
+```
+
+### 7.3 Content Security Policy
+
+```json
+"content_security_policy": {
+  "extension_pages": "script-src 'self'; object-src 'self'"
+}
+```
+
+This architecture ensures XSafe provides fast, reliable content filtering while maintaining user privacy and browser stability.
+
+## 8. Testing Strategy
+
+### 8.1 Unit Testing
 
 - **Framework**: Jest
 - **Coverage**: >90% code coverage
 - **Focus**: Core filtering logic, settings management, utilities
 
-### 6.2 Integration Testing
+### 8.2 Integration Testing
 
 - **Framework**: Playwright
 - **Scope**: Content script + background worker interaction
 - **Scenarios**: Real website testing, performance validation
 
-### 6.3 Performance Testing
+### 8.3 Performance Testing
 
 - **Metrics**: Memory usage, CPU impact, page load time
 - **Tools**: Chrome DevTools, Lighthouse
 - **Benchmarks**: <5% performance impact target
 
-### 6.4 Security Testing
+### 8.4 Security Testing
 
 - **Static Analysis**: ESLint security rules
 - **Manual Review**: Code review for privacy compliance
 - **Third-party Audit**: Regular security assessments
 
-## 7. Build & Development Workflow
+## 9. Build & Development Workflow
 
-### 7.1 Build System (Webpack)
+### 9.1 Build System (Webpack)
 
 ```javascript
 // webpack.config.js structure
@@ -363,14 +420,14 @@ module.exports = {
 };
 ```
 
-### 7.2 Development Tools
+### 9.2 Development Tools
 
 - **Hot Reload**: Extension auto-reload during development
 - **Source Maps**: Debug support
 - **Linting**: ESLint + Prettier
 - **Type Checking**: JSDoc with TypeScript checking
 
-### 7.3 Release Process
+### 9.3 Release Process
 
 1. **Version Bump**: Update manifest version
 2. **Build**: Create production bundle
@@ -378,9 +435,9 @@ module.exports = {
 4. **Package**: Create .crx and .zip files
 5. **Publish**: Submit to Chrome Web Store
 
-## 8. Monitoring & Analytics
+## 10. Monitoring & Analytics
 
-### 8.1 Performance Monitoring (Local Only)
+### 10.1 Performance Monitoring (Local Only)
 
 ```javascript
 // Local performance tracking
@@ -406,7 +463,7 @@ const performanceTracker = {
 };
 ```
 
-### 8.2 Error Handling
+### 10.2 Error Handling
 
 ```javascript
 // Comprehensive error handling
@@ -430,21 +487,21 @@ const errorHandler = {
 };
 ```
 
-## 9. Deployment Architecture
+## 11. Deployment Architecture
 
-### 9.1 Development Environment
+### 11.1 Development Environment
 
 - **Hot reload**: Instant extension updates
 - **Debug mode**: Enhanced logging and metrics
 - **Test data**: Sample filtering scenarios
 
-### 9.2 Production Build
+### 11.2 Production Build
 
 - **Minification**: Reduced bundle size
 - **Optimization**: Performance tuning
 - **Validation**: Automated testing pipeline
 
-### 9.3 Distribution
+### 11.3 Distribution
 
 - **Chrome Web Store**: Primary distribution
 - **GitHub Releases**: Open source distribution
