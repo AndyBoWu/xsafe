@@ -10,22 +10,23 @@
   <div class="popup-container">
     <!-- Title -->
     <header class="popup-header">
-      <h1 class="title">XSafe - Work Safe</h1>
+      <div class="title-row">
+        <img src="icons/icon-48.png" alt="XSafe Logo" class="logo">
+        <h1 class="title">XSafe</h1>
+      </div>
+      <p class="subtitle">Work Safe Mode of Twitter/X</p>
     </header>
 
-    <!-- Checkboxes -->
-    <section class="checkboxes">
-      <label class="checkbox-item">
-        <input type="checkbox" id="noPicturesToggle" class="checkbox-input">
-        <span class="checkbox-custom"></span>
-        <span class="checkbox-label">Remove Pictures</span>
-      </label>
-
-      <label class="checkbox-item">
-        <input type="checkbox" id="noVideosToggle" class="checkbox-input">
-        <span class="checkbox-custom"></span>
-        <span class="checkbox-label">Remove Videos</span>
-      </label>
+    <!-- Toggle Switch -->
+    <section class="toggle-section">
+      <div class="toggle-container">
+        <span class="toggle-label">Normal Mode</span>
+        <label class="toggle-switch">
+          <input type="checkbox" id="safeModeToggle" class="toggle-input">
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="toggle-label">Safe Mode</span>
+      </div>
     </section>
 
     <!-- Footer -->
