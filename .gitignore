@@ -20,6 +20,7 @@ build/
 # IDE and editor files
 .vscode/
 .idea/
+.cursor/
 *.swp
 *.swo
 *~
@@ -41,8 +42,10 @@ logs
 *.tmp
 *.temp
 
-# Chrome extension specific
-*.zip
+# Test coverage
+coverage/
 
-# But keep .cursor folder (commenting out since we want to track it)
-# .cursor/
+# Chrome extension generated files
+*.zip
+# But allow the versioned release zip
+!xsafe-extension-v*.zip
