@@ -478,6 +478,14 @@ This opens an interactive bundle analyzer showing:
 5. Run linting: `npm run lint`
 6. Create a pull request
 
+## 👨‍💻 Author
+
+**Andy Bo Wu** - Privacy-focused Chrome extension developer
+
+- 🌐 **Website**: https://andybowu.xyz/
+- 🐦 **Twitter/X**: https://x.com/andybowu
+- 💼 **LinkedIn**: https://www.linkedin.com/in/andybowu/
+
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) file for details.
