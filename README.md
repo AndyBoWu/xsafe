@@ -6,13 +6,21 @@
 
 🎉 **Major Update v0.1.0**: XSafe is now ready for Chrome Web Store publication!
 
-✅ **All Critical Errors Fixed**: Resolved TypeError, connection errors, and DOM manipulation issues
-✅ **Chrome Web Store Compliant**: Enhanced error handling, privacy-first architecture, Manifest V3
-✅ **Extension Package Ready**: `xsafe-extension-v0.1.0.zip` prepared for Chrome Web Store upload
-✅ **Zero Data Collection**: Privacy advantage with no data collection requirements
-✅ **Professional Documentation**: Complete technical architecture and submission guides
+- ✅ **All Critical Errors Fixed**: Resolved TypeError, connection errors, and DOM manipulation issues
+- ✅ **Chrome Web Store Compliant**: Enhanced error handling, privacy-first architecture, Manifest V3
+- ✅ **Extension Package Ready**: `xsafe-extension-v0.1.0.zip` prepared for Chrome Web Store upload
+- ✅ **Zero Data Collection**: Privacy advantage with no data collection requirements
+- ✅ **Professional Documentation**: Complete technical architecture and submission guides
 
 **Next**: Chrome Web Store review process (1-7 days expected timeline)
+
+## 👨‍💻 Author
+
+**Andy Bo Wu** - Privacy-focused Chrome extension developer
+
+- 🌐 **Website**: https://andybowu.xyz/
+- 🐦 **Twitter/X**: https://x.com/andybowu
+- 💼 **LinkedIn**: https://www.linkedin.com/in/andybowu/
 
 ---
 
@@ -309,15 +317,15 @@ npm run clean        # Clean dist directory
 ```
 xsafe/
 ├── src/
-│   ├── background/         # Service worker
-│   ├── content/           # Content scripts
-│   ├── popup/             # Extension popup
-│   ├── options/           # Settings page
-│   └── utils/             # Shared utilities
-├── dist/                  # Built extension (generated)
-├── tests/                 # Test files
-├── scripts/               # Build scripts
-├── webpack.config.js      # Webpack configuration
+│   ├── background/       # Service worker
+│   ├── content/          # Content scripts
+│   ├── popup/            # Extension popup
+│   ├── options/          # Settings page
+│   └── utils/            # Shared utilities
+├── dist/                 # Built extension (generated)
+├── tests/                # Test files
+├── scripts/              # Build scripts
+├── webpack.config.js     # Webpack configuration
 ├── package.json          # Dependencies & scripts
 └── manifest.json         # Extension manifest
 ```
@@ -407,8 +415,8 @@ The build process generates:
 
 ```
 dist/
-├── manifest.json          # Updated extension manifest
-├── background.js          # Service worker bundle
+├── manifest.json         # Updated extension manifest
+├── background.js         # Service worker bundle
 ├── content.js            # Content script bundle
 ├── popup.html            # Popup page
 ├── popup.js              # Popup bundle
@@ -477,14 +485,6 @@ This opens an interactive bundle analyzer showing:
 4. Run tests: `npm test`
 5. Run linting: `npm run lint`
 6. Create a pull request
-
-## 👨‍💻 Author
-
-**Andy Bo Wu** - Privacy-focused Chrome extension developer
-
-- 🌐 **Website**: https://andybowu.xyz/
-- 🐦 **Twitter/X**: https://x.com/andybowu
-- 💼 **LinkedIn**: https://www.linkedin.com/in/andybowu/
 
 ## 📄 License
 
