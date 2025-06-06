@@ -2,6 +2,20 @@
 
 **Block NSFW content on Twitter/X • Zero data collection • Local processing only • Free forever**
 
+## 📢 **Current Status - Chrome Web Store Submission Ready**
+
+🎉 **Major Update v0.1.0**: XSafe is now ready for Chrome Web Store publication!
+
+✅ **All Critical Errors Fixed**: Resolved TypeError, connection errors, and DOM manipulation issues
+✅ **Chrome Web Store Compliant**: Enhanced error handling, privacy-first architecture, Manifest V3
+✅ **Extension Package Ready**: `xsafe-extension-v0.1.0.zip` prepared for Chrome Web Store upload
+✅ **Zero Data Collection**: Privacy advantage with no data collection requirements
+✅ **Professional Documentation**: Complete technical architecture and submission guides
+
+**Next**: Chrome Web Store review process (1-7 days expected timeline)
+
+---
+
 XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos on Twitter/X timeline without collecting any personal data. All processing happens locally on your device with optimized performance. **XSafe will always be completely free with no premium features or subscriptions.**
 
 ## 🚀 Features
@@ -197,9 +211,11 @@ XSafe is a privacy-focused Chrome extension that blocks NSFW images and videos o
 
 ## 🔗 Installation
 
-### Chrome Web Store (Recommended)
+### Chrome Web Store (Coming Soon)
 
-📦 **Coming Soon**: XSafe will be available on the Chrome Web Store for easy one-click installation.
+🚀 **In Review**: XSafe is currently under review for the Chrome Web Store. Once approved, it will be available for easy one-click installation.
+
+📦 **Current Status**: Extension package ready (`xsafe-extension-v0.1.0.zip`) with all error fixes applied and Chrome Web Store compliance achieved.
 
 ### Manual Installation (Developer Mode)
 
